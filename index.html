@@ -12,12 +12,7 @@ const classes = [
 let adminUnlocked = false;
 
 document.addEventListener("DOMContentLoaded", function() {
-
-    // SAFARI MOBILE SAFE TAP
-    document.querySelector(".topbar").addEventListener("click", function(){
-        setTimeout(adminPanel, 100);
-    });
-
+    document.querySelector(".topbar").addEventListener("click", openAdmin);
 });
 
 function login(){
@@ -54,18 +49,16 @@ function renderClasses(){
 }
 
 function createAssignmentElement(classId,name,score,index){
-
     let div = document.createElement("div");
     div.className = "assignment";
     div.innerHTML = `
         <span>${name} - ${score}</span>
         <span class="delete-btn" onclick="removeAssignment(${classId},${index})">✕</span>
     `;
-
     document.getElementById("assign"+classId).appendChild(div);
 }
 
-function adminPanel(){
+function openAdmin(){
 
     if(!adminUnlocked){
         let pass = prompt("Enter admin password:");
@@ -74,12 +67,26 @@ function adminPanel(){
         alert("Admin Mode Enabled");
     }
 
+    showAdminMenu();
+}
+
+function showAdminMenu(){
+
+    let input = prompt(
+`ADMIN MENU
+
+Type:
+1 - Change Grade
+2 - Add Assignment
+3 - Exit`
+    );
+
+    if(!input || input === "3") return;
+
     let classId = prompt("Enter class number (1-6):");
     if(!classId) return;
 
-    let action = prompt("1 = Change Grade\n2 = Add Assignment");
-
-    if(action == "1"){
+    if(input === "1"){
         let newGrade = prompt("Enter new grade:");
         if(newGrade){
             localStorage.setItem("grade"+classId,newGrade);
@@ -87,16 +94,20 @@ function adminPanel(){
         }
     }
 
-    if(action == "2"){
+    if(input === "2"){
         let name = prompt("Assignment name:");
+        if(!name) return;
+
         let score = prompt("Score:");
-        if(name && score){
-            let assignments = JSON.parse(localStorage.getItem("assign"+classId)) || [];
-            assignments.push({name,score});
-            localStorage.setItem("assign"+classId,JSON.stringify(assignments));
-            renderClasses();
-        }
+        if(!score) return;
+
+        let assignments = JSON.parse(localStorage.getItem("assign"+classId)) || [];
+        assignments.push({name,score});
+        localStorage.setItem("assign"+classId,JSON.stringify(assignments));
+        renderClasses();
     }
+
+    setTimeout(showAdminMenu, 200); 
 }
 
 function removeAssignment(classId,index){
