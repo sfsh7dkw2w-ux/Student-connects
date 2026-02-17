@@ -49,7 +49,7 @@
   }
 
   .assignment{
-    margin-top:8px;
+    margin-top:10px;
     padding:10px;
     background:#f5f7fa;
     border-radius:10px;
@@ -63,24 +63,11 @@
     flex-direction:column;
     gap:4px;
   }
-  .assignmentName{
-    font-weight:bold;
-  }
+  .assignmentName{ font-weight:bold; }
   .assignmentMeta{
     font-size:13px;
     opacity:0.8;
   }
-  .deleteX{
-    cursor:pointer;
-    color:#c4001a;
-    font-weight:bold;
-    padding:4px 10px;
-    border-radius:10px;
-    line-height:1.2;
-    user-select:none;
-    -webkit-user-select:none;
-  }
-  .deleteX:hover{ background:#fdecef; }
 
   .login{
     display:flex;
@@ -116,7 +103,7 @@
   }
   .modal-content{
     width:100%;
-    max-width:520px;
+    max-width:560px;
     background:#fff;
     border-radius:14px;
     box-shadow:0 10px 30px rgba(0,0,0,0.25);
@@ -125,7 +112,7 @@
   .modal-title{
     font-weight:bold;
     font-size:18px;
-    margin-bottom:8px;
+    margin-bottom:6px;
   }
   .modal-sub{
     font-size:12px;
@@ -133,6 +120,7 @@
     margin-bottom:10px;
     line-height:1.35;
   }
+
   .modal-content input,
   .modal-content select{
     width:100%;
@@ -144,6 +132,7 @@
     font-size:15px;
     outline:none;
   }
+
   .row{
     display:flex;
     gap:10px;
@@ -153,29 +142,72 @@
     flex:1 1 140px;
     min-width:140px;
   }
-  .modal-row{
+
+  .btnRow{
     display:flex;
     gap:10px;
     flex-wrap:wrap;
     margin-top:12px;
   }
-  .modal-row button{
-    flex:1 1 140px;
+  .btnRow button{
+    flex:1 1 160px;
     padding:12px;
     border:none;
     border-radius:10px;
     cursor:pointer;
     font-weight:bold;
   }
-  .saveBtn{ background:#2d3e50; color:#fff; }
-  .closeBtn{ background:#e7ecf2; color:#1f2a33; }
+  .primaryBtn{ background:#2d3e50; color:#fff; }
+  .mutedBtn{ background:#e7ecf2; color:#1f2a33; }
   .dangerBtn{ background:#c4001a; color:#fff; }
+
   .errorText{
     margin-top:10px;
     color:#c4001a;
     font-weight:bold;
     font-size:13px;
   }
+
+  /* Admin assignment list */
+  .adminList{
+    margin-top:12px;
+    border-top:1px solid #eef2f5;
+    padding-top:10px;
+  }
+  .adminItem{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+    padding:10px;
+    background:#f7f9fc;
+    border:1px solid #e6edf5;
+    border-radius:10px;
+    margin-top:10px;
+  }
+  .adminItemLeft{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .adminItemName{ font-weight:bold; }
+  .adminItemMeta{ font-size:13px; opacity:0.8; }
+
+  .adminItemBtns{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+  .miniBtn{
+    border:none;
+    border-radius:10px;
+    padding:8px 10px;
+    cursor:pointer;
+    font-weight:bold;
+  }
+  .miniEdit{ background:#2d3e50; color:#fff; }
+  .miniDel{ background:#c4001a; color:#fff; }
 </style>
 </head>
 
@@ -196,26 +228,32 @@
     <div class="modal-content" id="adminModalBox">
       <div class="modal-title">Admin</div>
       <div class="modal-sub">
-        Admin mode is required to delete assignments or change overall grades.
+        Admin mode is required to add/edit/delete assignments and override class grades.
       </div>
 
       <!-- Step 1: Password -->
       <div id="adminStepPass">
         <input id="adminPassInput" type="password" placeholder="Enter admin password" inputmode="numeric" />
-        <div class="modal-row">
-          <button class="saveBtn" id="adminUnlockBtn">Unlock</button>
-          <button class="closeBtn" id="adminCloseBtn1">Close</button>
+        <div class="btnRow">
+          <button class="primaryBtn" id="adminUnlockBtn">Unlock</button>
+          <button class="mutedBtn" id="adminCloseBtn1">Close</button>
         </div>
         <div id="adminPassErr" class="errorText hidden">Incorrect password.</div>
       </div>
 
-      <!-- Step 2: Admin tools -->
+      <!-- Step 2: Tools -->
       <div id="adminStepTools" class="hidden">
         <select id="classSelect"></select>
 
-        <!-- Add assignment -->
-        <input id="assignName" type="text" placeholder="Assignment name (ex: Homework 1)" />
+        <!-- Override grade -->
+        <input id="overrideInput" type="text" placeholder="Override overall grade (optional, ex: A-)" />
+        <div class="btnRow">
+          <button class="primaryBtn" id="saveOverride">Save Override</button>
+          <button class="mutedBtn" id="clearOverride">Clear Override</button>
+        </div>
 
+        <!-- Add / Edit assignment -->
+        <input id="assignName" type="text" placeholder="Assignment name (ex: Homework 1)" />
         <div class="row">
           <div class="col">
             <input id="earnedInput" type="number" min="0" step="0.01" placeholder="Points earned (ex: 18)" />
@@ -225,20 +263,20 @@
           </div>
         </div>
 
-        <div class="modal-row">
-          <button class="saveBtn" id="saveAssign">Save Assignment</button>
-          <button class="closeBtn" id="adminCloseBtn2">Close</button>
+        <div class="btnRow">
+          <button class="primaryBtn" id="saveAssignBtn">Save Assignment</button>
+          <button class="mutedBtn" id="clearFormBtn">Clear</button>
+          <button class="mutedBtn" id="adminCloseBtn2">Close</button>
         </div>
 
-        <!-- Override grade -->
-        <input id="overrideInput" type="text" placeholder="Override overall grade (optional, ex: A-)" />
-        <div class="modal-row">
-          <button class="saveBtn" id="saveOverride">Save Override</button>
-          <button class="closeBtn" id="clearOverride">Clear Override</button>
+        <div class="btnRow">
+          <button class="dangerBtn" id="exitAdminBtn">Exit Admin Mode</button>
         </div>
 
-        <div class="modal-row">
-          <button class="dangerBtn" id="exitAdmin">Exit Admin Mode</button>
+        <!-- Assignment list (admin only) -->
+        <div class="adminList">
+          <div style="font-weight:bold;">Assignments (Admin)</div>
+          <div id="adminAssignList"></div>
         </div>
       </div>
     </div>
@@ -248,7 +286,7 @@
 (function(){
   // ===== CONFIG =====
   var ADMIN_PASSWORD = "20126693";
-  var isAdminUnlocked = false; // controls delete/override permissions
+  var isAdminUnlocked = false; // controls ALL edits/deletes/overrides
 
   var classes = [
     {id:1,name:"Chemistry S2",teacher:"Bazzi-Hijazi, R"},
@@ -267,7 +305,6 @@
 
   var adminModal = document.getElementById("adminModal");
   var adminModalBox = document.getElementById("adminModalBox");
-
   var adminStepPass = document.getElementById("adminStepPass");
   var adminStepTools = document.getElementById("adminStepTools");
 
@@ -276,19 +313,25 @@
   var adminUnlockBtn = document.getElementById("adminUnlockBtn");
   var adminCloseBtn1 = document.getElementById("adminCloseBtn1");
   var adminCloseBtn2 = document.getElementById("adminCloseBtn2");
+  var exitAdminBtn = document.getElementById("exitAdminBtn");
 
   var classSelect = document.getElementById("classSelect");
-  var assignName = document.getElementById("assignName");
-  var earnedInput = document.getElementById("earnedInput");
-  var possibleInput = document.getElementById("possibleInput");
-  var saveAssign = document.getElementById("saveAssign");
-
   var overrideInput = document.getElementById("overrideInput");
   var saveOverride = document.getElementById("saveOverride");
   var clearOverride = document.getElementById("clearOverride");
-  var exitAdmin = document.getElementById("exitAdmin");
 
-  // ===== SAFE MODAL HIDE ON LOAD =====
+  var assignName = document.getElementById("assignName");
+  var earnedInput = document.getElementById("earnedInput");
+  var possibleInput = document.getElementById("possibleInput");
+  var saveAssignBtn = document.getElementById("saveAssignBtn");
+  var clearFormBtn = document.getElementById("clearFormBtn");
+
+  var adminAssignList = document.getElementById("adminAssignList");
+
+  // Edit state (admin only)
+  var editingIndex = null; // number or null
+
+  // ===== Always start with admin hidden =====
   forceHideAdmin();
 
   function forceHideAdmin(){
@@ -302,12 +345,16 @@
     adminModal.style.display = "flex";
   }
   function closeAdminModal(){
-    forceHideAdmin();
+    // Closing the modal LOCKS admin (safer).
+    // You can always re-open with 5 taps.
+    exitAdminMode();
   }
   function exitAdminMode(){
     isAdminUnlocked = false;
-    closeAdminModal();
-    render(); // ensure delete buttons disappear
+    editingIndex = null;
+    resetAssignmentForm();
+    forceHideAdmin();
+    render(); // removes any admin-only visibility
   }
 
   // ===== LOGIN =====
@@ -317,19 +364,21 @@
     render();
   });
 
-  // ===== STORAGE HELPERS =====
+  // ===== Storage helpers =====
+  function safeParse(json, fallback){
+    try { return JSON.parse(json); } catch(e){ return fallback; }
+  }
   function getAssignments(classId){
     return safeParse(localStorage.getItem("assign_" + classId), []);
   }
   function setAssignments(classId, arr){
     localStorage.setItem("assign_" + classId, JSON.stringify(arr));
   }
-
   function getOverride(classId){
     var v = localStorage.getItem("override_" + classId);
     return v ? String(v) : "";
   }
-  function setOverride(classId, v){
+  function setOverrideValue(classId, v){
     v = String(v || "").trim();
     if(!v){
       localStorage.removeItem("override_" + classId);
@@ -338,11 +387,7 @@
     }
   }
 
-  function safeParse(json, fallback){
-    try { return JSON.parse(json); } catch(e){ return fallback; }
-  }
-
-  // ===== GRADE CALCS =====
+  // ===== Grade calculations =====
   function computePercent(assignments){
     var earnedSum = 0;
     var possibleSum = 0;
@@ -384,7 +429,7 @@
     return (Math.round(p * 10) / 10).toFixed(1) + "%";
   }
 
-  // ===== RENDER =====
+  // ===== Render dashboard (READ-ONLY for non-admin) =====
   function render(){
     dashboard.innerHTML = "";
 
@@ -423,13 +468,19 @@
         container.appendChild(empty);
       } else {
         for(var j=0;j<assignments.length;j++){
-          addAssignmentRow(container, c.id, assignments[j], j);
+          addAssignmentRow(container, assignments[j]);
         }
       }
     }
+
+    // If admin is open/unlocked, refresh admin list too
+    if(isAdminUnlocked && !adminStepTools.classList.contains("hidden")){
+      renderAdminAssignmentList();
+    }
   }
 
-  function addAssignmentRow(container, classId, a, index){
+  // Dashboard assignment row is READ-ONLY (no edit/delete controls exist here)
+  function addAssignmentRow(container, a){
     var div = document.createElement("div");
     div.className = "assignment";
 
@@ -454,19 +505,8 @@
 
     left.appendChild(name);
     left.appendChild(meta);
+
     div.appendChild(left);
-
-    // ONLY show delete button if admin is unlocked
-    if(isAdminUnlocked){
-      var del = document.createElement("span");
-      del.className = "deleteX";
-      del.textContent = "✕";
-      del.setAttribute("data-action", "delete");
-      del.setAttribute("data-class", String(classId));
-      del.setAttribute("data-index", String(index));
-      div.appendChild(del);
-    }
-
     container.appendChild(div);
   }
 
@@ -476,31 +516,7 @@
             .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
   }
 
-  // ===== DELETE (ADMIN ONLY, STRICT) =====
-  document.addEventListener("click", function(e){
-    var t = e.target;
-    if(!t || !t.getAttribute) return;
-
-    // Only delete if:
-    // 1) admin unlocked
-    // 2) clicked element is deleteX with data-action="delete"
-    if(!isAdminUnlocked) return;
-    if(!t.classList || !t.classList.contains("deleteX")) return;
-    if(t.getAttribute("data-action") !== "delete") return;
-
-    var classId = t.getAttribute("data-class");
-    var index = Number(t.getAttribute("data-index"));
-    if(!classId || !isFinite(index)) return;
-
-    var arr = getAssignments(classId);
-    if(index < 0 || index >= arr.length) return;
-
-    arr.splice(index, 1);
-    setAssignments(classId, arr);
-    render();
-  });
-
-  // ===== ADMIN TRIGGER: 5 TAPS ON HEADER (iOS SAFE) =====
+  // ===== ADMIN trigger: 5 taps on header (iOS safe) =====
   var tapCount = 0;
   var tapTimer = null;
   var lastTouchTime = 0;
@@ -528,25 +544,23 @@
   });
 
   function openAdmin(){
-    // reset modal state
+    // reset modal state (locked until password correct)
+    isAdminUnlocked = false;
+    editingIndex = null;
+    resetAssignmentForm();
+
     adminPassInput.value = "";
     adminPassErr.classList.add("hidden");
 
     adminStepPass.classList.remove("hidden");
     adminStepTools.classList.add("hidden");
 
-    // clear fields
-    assignName.value = "";
-    earnedInput.value = "";
-    possibleInput.value = "";
-    overrideInput.value = "";
-
     // show modal
     showAdmin();
     setTimeout(function(){ adminPassInput.focus(); }, 50);
   }
 
-  // close behaviors
+  // Close actions
   adminCloseBtn1.addEventListener("click", closeAdminModal);
   adminCloseBtn2.addEventListener("click", closeAdminModal);
 
@@ -557,11 +571,11 @@
     e.stopPropagation();
   });
 
-  exitAdmin.addEventListener("click", function(){
+  exitAdminBtn.addEventListener("click", function(){
     exitAdminMode();
   });
 
-  // unlock admin
+  // Unlock admin
   adminUnlockBtn.addEventListener("click", function(){
     var pass = (adminPassInput.value || "").replace(/\s+/g,"");
     if(pass !== ADMIN_PASSWORD){
@@ -570,9 +584,9 @@
     }
     adminPassErr.classList.add("hidden");
 
-    isAdminUnlocked = true; // enable delete + override
+    isAdminUnlocked = true;
 
-    // populate classes dropdown
+    // populate class dropdown
     classSelect.innerHTML = "";
     for(var i=0;i<classes.length;i++){
       var opt = document.createElement("option");
@@ -581,26 +595,62 @@
       classSelect.appendChild(opt);
     }
 
-    // load current override for selected class
+    // load override for selected class
     overrideInput.value = getOverride(classSelect.value);
 
-    // show tools
     adminStepPass.classList.add("hidden");
     adminStepTools.classList.remove("hidden");
 
-    // re-render so delete buttons appear immediately
-    render();
-
+    renderAdminAssignmentList();
+    render(); // dashboard stays read-only but reflects any stored values
     setTimeout(function(){ assignName.focus(); }, 50);
   });
 
-  // update override input when class changes
+  // When class changes in admin
   classSelect.addEventListener("change", function(){
+    if(!isAdminUnlocked) return;
     overrideInput.value = getOverride(classSelect.value);
+    editingIndex = null;
+    resetAssignmentForm();
+    renderAdminAssignmentList();
   });
 
-  // save assignment (ADMIN ONLY because modal only opens after admin unlock)
-  saveAssign.addEventListener("click", function(){
+  // ===== Admin: Override grade (admin only) =====
+  saveOverride.addEventListener("click", function(){
+    if(!isAdminUnlocked) return;
+    var classId = classSelect.value;
+    var v = (overrideInput.value || "").trim();
+    if(!v){
+      alert("Type a letter grade (ex: A-, B+), or use Clear Override.");
+      return;
+    }
+    setOverrideValue(classId, v);
+    render();
+  });
+
+  clearOverride.addEventListener("click", function(){
+    if(!isAdminUnlocked) return;
+    var classId = classSelect.value;
+    setOverrideValue(classId, "");
+    overrideInput.value = "";
+    render();
+  });
+
+  // ===== Admin: Add / Edit assignment (admin only) =====
+  function resetAssignmentForm(){
+    assignName.value = "";
+    earnedInput.value = "";
+    possibleInput.value = "";
+    saveAssignBtn.textContent = "Save Assignment";
+    editingIndex = null;
+  }
+
+  clearFormBtn.addEventListener("click", function(){
+    if(!isAdminUnlocked) return;
+    resetAssignmentForm();
+  });
+
+  saveAssignBtn.addEventListener("click", function(){
     if(!isAdminUnlocked) return;
 
     var classId = classSelect.value;
@@ -613,40 +663,126 @@
     if(!isFinite(possible) || possible <= 0){ alert("Points possible must be a valid number > 0."); return; }
 
     var arr = getAssignments(classId);
-    arr.push({ name:name, earned:earned, possible:possible });
+
+    if(editingIndex === null){
+      // ADD
+      arr.push({ name:name, earned:earned, possible:possible });
+    } else {
+      // EDIT
+      if(editingIndex < 0 || editingIndex >= arr.length){
+        alert("That assignment no longer exists. Refreshing list.");
+        editingIndex = null;
+        renderAdminAssignmentList();
+        return;
+      }
+      arr[editingIndex] = { name:name, earned:earned, possible:possible };
+    }
+
     setAssignments(classId, arr);
-
-    assignName.value = "";
-    earnedInput.value = "";
-    possibleInput.value = "";
-
+    resetAssignmentForm();
+    renderAdminAssignmentList();
     render();
   });
 
-  // save override (ADMIN ONLY)
-  saveOverride.addEventListener("click", function(){
+  // ===== Admin: assignment list with edit/delete (admin only) =====
+  function renderAdminAssignmentList(){
     if(!isAdminUnlocked) return;
 
     var classId = classSelect.value;
-    var v = (overrideInput.value || "").trim();
+    var arr = getAssignments(classId);
 
-    if(!v){
-      alert("Type a letter grade (ex: A-, B+), or use Clear Override.");
+    adminAssignList.innerHTML = "";
+
+    if(arr.length === 0){
+      var empty = document.createElement("div");
+      empty.style.opacity = "0.75";
+      empty.style.marginTop = "10px";
+      empty.textContent = "No assignments for this class.";
+      adminAssignList.appendChild(empty);
       return;
     }
 
-    setOverride(classId, v);
-    render();
-  });
+    for(var i=0;i<arr.length;i++){
+      (function(idx){
+        var a = arr[idx];
 
-  clearOverride.addEventListener("click", function(){
-    if(!isAdminUnlocked) return;
+        var item = document.createElement("div");
+        item.className = "adminItem";
 
-    var classId = classSelect.value;
-    setOverride(classId, "");
-    overrideInput.value = "";
-    render();
-  });
+        var left = document.createElement("div");
+        left.className = "adminItemLeft";
+
+        var n = document.createElement("div");
+        n.className = "adminItemName";
+        n.textContent = a.name;
+
+        var m = document.createElement("div");
+        m.className = "adminItemMeta";
+
+        var earned = Number(a.earned);
+        var possible = Number(a.possible);
+        var pctText = "--";
+        if(isFinite(earned) && isFinite(possible) && possible > 0){
+          var pct = (earned/possible) * 100;
+          pctText = (Math.round(pct*10)/10).toFixed(1) + "%";
+        }
+        m.textContent = String(a.earned) + " / " + String(a.possible) + "  •  " + pctText;
+
+        left.appendChild(n);
+        left.appendChild(m);
+
+        var btns = document.createElement("div");
+        btns.className = "adminItemBtns";
+
+        var editBtn = document.createElement("button");
+        editBtn.className = "miniBtn miniEdit";
+        editBtn.textContent = "Edit";
+        editBtn.addEventListener("click", function(){
+          if(!isAdminUnlocked) return;
+          editingIndex = idx;
+          assignName.value = a.name;
+          earnedInput.value = a.earned;
+          possibleInput.value = a.possible;
+          saveAssignBtn.textContent = "Update Assignment";
+          setTimeout(function(){ assignName.focus(); }, 50);
+        });
+
+        var delBtn = document.createElement("button");
+        delBtn.className = "miniBtn miniDel";
+        delBtn.textContent = "Delete";
+        delBtn.addEventListener("click", function(){
+          if(!isAdminUnlocked) return;
+          var ok = confirm("Delete this assignment?");
+          if(!ok) return;
+
+          var arr2 = getAssignments(classId);
+          if(idx < 0 || idx >= arr2.length) return;
+          arr2.splice(idx, 1);
+          setAssignments(classId, arr2);
+
+          // if we deleted the one being edited, reset form
+          if(editingIndex === idx){
+            resetAssignmentForm();
+          }
+          // if deleted earlier index, shift editingIndex down
+          if(editingIndex !== null && idx < editingIndex){
+            editingIndex = editingIndex - 1;
+          }
+
+          renderAdminAssignmentList();
+          render();
+        });
+
+        btns.appendChild(editBtn);
+        btns.appendChild(delBtn);
+
+        item.appendChild(left);
+        item.appendChild(btns);
+
+        adminAssignList.appendChild(item);
+      })(i);
+    }
+  }
 
 })();
 </script>
