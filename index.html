@@ -40,14 +40,26 @@ body{
 .teacher{ color:#4f6d8c; margin-top:3px; }
 .grade{ margin-top:8px; font-weight:bold; }
 
-.hidden{ display:none; }
-
 .login{
   display:flex;
   justify-content:center;
   align-items:center;
   height:80vh;
 }
+.login button{
+  padding:12px 20px;
+  font-size:16px;
+  border-radius:8px;
+  border:none;
+  background:#2d3e50;
+  color:white;
+  cursor:pointer;
+}
+.login button:hover{
+  opacity:0.9;
+}
+
+.hidden{ display:none; }
 </style>
 </head>
 
@@ -57,38 +69,21 @@ body{
 <div class="subbar" id="subbar">Assignments</div>
 
 <div class="container">
+
   <div id="login" class="login">
-    <div>
-      <div id="g_id_onload"></div>
-      <div class="g_id_signin"
-        data-type="standard"
-        data-size="large"
-        data-theme="outline"
-        data-text="signin_with"
-        data-shape="rectangular">
-      </div>
-    </div>
+    <button id="loginBtn">Sign In</button>
   </div>
 
   <div id="dashboard" class="hidden"></div>
-</div>
 
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+</div>
 
 <script>
 (function(){
 
-/* ============================
-   CONFIG
-============================ */
+/* ================= CONFIG ================= */
 
-var GOOGLE_CLIENT_ID = "PASTE_YOUR_REAL_CLIENT_ID_HERE";
-var ADMIN_EMAIL = "youradmin@email.com";
-
-/* ============================
-   DATA
-============================ */
-
+var ADMIN_PASSWORD = "secureAdmin2026"; // change this
 var classes = [
  {id:1,name:"Chemistry S2",teacher:"Bazzi-Hijazi, R"},
  {id:2,name:"Arabic 2 S2",teacher:"Raishouni, O"},
@@ -98,41 +93,22 @@ var classes = [
  {id:6,name:"Algebra 2 S2",teacher:"AlHadrawi, M"}
 ];
 
-var dashboard = document.getElementById("dashboard");
+/* ================= ELEMENTS ================= */
+
 var login = document.getElementById("login");
+var loginBtn = document.getElementById("loginBtn");
+var dashboard = document.getElementById("dashboard");
 var header = document.getElementById("header");
-var subbar = document.getElementById("subbar");
 
-var currentUserEmail = null;
+/* ================= LOGIN ================= */
 
-/* ============================
-   GOOGLE LOGIN
-============================ */
-
-window.handleCredentialResponse = function(response){
-  var jwt = response.credential;
-  var payload = jwt.split(".")[1];
-  payload = payload.replace(/-/g,'+').replace(/_/g,'/');
-  while(payload.length % 4) payload += '=';
-  var data = JSON.parse(decodeURIComponent(escape(atob(payload))));
-  
-  currentUserEmail = data.email;
-
+loginBtn.addEventListener("click", function(){
   login.classList.add("hidden");
   dashboard.classList.remove("hidden");
-  subbar.innerHTML = "Assignments — " + data.name;
-
   render();
-};
+});
 
-document.getElementById("g_id_onload")
-  .setAttribute("data-client_id", GOOGLE_CLIENT_ID);
-document.getElementById("g_id_onload")
-  .setAttribute("data-callback","handleCredentialResponse");
-
-/* ============================
-   RENDER
-============================ */
+/* ================= RENDER ================= */
 
 function render(){
   dashboard.innerHTML = "";
@@ -149,12 +125,15 @@ function render(){
     card.innerHTML =
       "<div class='title'>" + c.name + "</div>" +
       "<div class='teacher'>" + c.teacher + "</div>" +
-      "<div class='grade'>Grade: " + letter + 
+      "<div class='grade'>Grade: " +
+      (letter ? letter : "--") +
       " (" + (percent ? percent.toFixed(1)+"%" : "--") + ")</div>";
 
     dashboard.appendChild(card);
   }
 }
+
+/* ================= GRADE CALC ================= */
 
 function compute(list){
   if(!list.length) return null;
@@ -167,7 +146,7 @@ function compute(list){
 }
 
 function grade(p){
-  if(p==null) return "--";
+  if(p==null) return null;
   if(p>=93) return "A";
   if(p>=90) return "A-";
   if(p>=87) return "B+";
@@ -178,9 +157,7 @@ function grade(p){
   return "F";
 }
 
-/* ============================
-   ADMIN (Hidden + Email Restricted)
-============================ */
+/* ================= HIDDEN ADMIN ================= */
 
 var tapCount=0;
 var timer=null;
@@ -192,14 +169,15 @@ header.addEventListener("click",function(){
 
   if(tapCount===5){
     tapCount=0;
-    if(currentUserEmail===ADMIN_EMAIL){
-      openAdmin();
-    }
+    unlockAdmin();
   }
 });
 
-function openAdmin(){
-  var classId = prompt("Class ID?");
+function unlockAdmin(){
+  var pass = prompt("Admin password:");
+  if(pass !== ADMIN_PASSWORD) return;
+
+  var classId = prompt("Class ID (1-6)?");
   if(!classId) return;
 
   var name = prompt("Assignment name?");
@@ -218,5 +196,6 @@ function openAdmin(){
 
 })();
 </script>
+
 </body>
 </html>
