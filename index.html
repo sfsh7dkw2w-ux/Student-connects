@@ -51,14 +51,9 @@
       gap:10px;
       flex-wrap:wrap;
     }
-    .grade{
-      font-weight:bold;
-    }
-    .gradeSmall{
-      font-size:12px;
-      opacity:0.75;
-      margin-top:2px;
-    }
+    .grade{ font-weight:bold; }
+    .gradeSmall{ font-size:12px; opacity:0.75; margin-top:2px; }
+
     .assignHeader{
       margin-top:10px;
       font-weight:bold;
@@ -185,10 +180,7 @@
       font-weight:bold;
       font-size:13px;
     }
-    .tabBtn.active{
-      background:#eef2f5;
-      border-color:#b8c7d8;
-    }
+    .tabBtn.active{ background:#eef2f5; border-color:#b8c7d8; }
     .row{
       display:flex;
       gap:10px;
@@ -201,10 +193,7 @@
       display:block;
       margin-bottom:6px;
     }
-    .field{
-      flex:1 1 160px;
-      min-width:160px;
-    }
+    .field{ flex:1 1 160px; min-width:160px; }
     input, select{
       width:100%;
       box-sizing:border-box;
@@ -419,8 +408,6 @@
   <script>
   (function(){
     // ======= CONFIG =======
-    // Replace this with your real Google OAuth Client ID (Web application).
-    // Example: "1234567890-abcdefg.apps.googleusercontent.com"
     var GOOGLE_CLIENT_ID = "PASTE_YOUR_CLIENT_ID_HERE";
 
     // ======= DATA =======
@@ -524,12 +511,10 @@
     }
 
     function getAssignments(classId){
-      var key = "assign_" + classId;
-      return safeParse(lsGet(key, "[]"), []);
+      return safeParse(lsGet("assign_" + classId, "[]"), []);
     }
     function setAssignments(classId, arr){
-      var key = "assign_" + classId;
-      lsSet(key, JSON.stringify(arr));
+      lsSet("assign_" + classId, JSON.stringify(arr));
     }
 
     function getOverride(classId){
@@ -543,7 +528,6 @@
       }
     }
 
-    // Weighted grade: sum(earned/possible * weight) / sum(weight)
     function computePercent(assignments){
       var sumWeighted = 0;
       var sumW = 0;
@@ -564,7 +548,6 @@
     }
 
     function letterFromPercent(p){
-      // Simple common scale. Adjust if you want.
       if(p === null) return "—";
       if(p >= 93) return "A";
       if(p >= 90) return "A-";
@@ -582,26 +565,24 @@
 
     function formatPercent(p){
       if(p === null) return "—";
-      // Safari safe rounding
       return (Math.round(p * 10) / 10).toFixed(1) + "%";
     }
 
-    function isLoggedIn(){
-      return lsGet("loggedIn", "") === "1";
-    }
+    function isLoggedIn(){ return lsGet("loggedIn", "") === "1"; }
     function setLoggedIn(userLabel){
       lsSet("loggedIn", "1");
       lsSet("userLabel", userLabel || "Student");
     }
-    function logOut(){
-      localStorage.removeItem("loggedIn");
-      localStorage.removeItem("userLabel");
+
+    function enterApp(){
+      hide(loginPage);
+      show(dashboard);
+      render();
     }
 
     // ======= RENDER =======
     function render(){
       dashboard.innerHTML = "";
-
       var userLabel = lsGet("userLabel", "Student");
       subbarTitle.textContent = "Assignments — " + userLabel;
 
@@ -618,20 +599,20 @@
         var card = document.createElement("div");
         card.className = "card";
 
-        var topHtml = "";
-        topHtml += "<div class='title'>" + c.id + " - " + escapeHtml(c.name) + "</div>";
-        topHtml += "<div class='teacher'>" + escapeHtml(c.teacher) + "</div>";
-        topHtml += "<div class='gradeRow'>";
-        topHtml +=   "<div>";
-        topHtml +=     "<div class='grade'>Current Grade: " + escapeHtml(letterToShow) + "</div>";
-        topHtml +=     "<div class='gradeSmall'>Computed: " + escapeHtml(computedLetter) + " • " + escapeHtml(formatPercent(percent)) + "</div>";
-        topHtml +=   "</div>";
-        topHtml +=   "<div class='pill'>" + assignments.length + " assignment(s)</div>";
-        topHtml += "</div>";
-        topHtml += "<div class='assignHeader'>Assignments</div>";
-        topHtml += "<div id='assign_" + c.id + "'></div>";
+        var html = "";
+        html += "<div class='title'>" + c.id + " - " + escapeHtml(c.name) + "</div>";
+        html += "<div class='teacher'>" + escapeHtml(c.teacher) + "</div>";
+        html += "<div class='gradeRow'>";
+        html +=   "<div>";
+        html +=     "<div class='grade'>Current Grade: " + escapeHtml(letterToShow) + "</div>";
+        html +=     "<div class='gradeSmall'>Computed: " + escapeHtml(computedLetter) + " • " + escapeHtml(formatPercent(percent)) + "</div>";
+        html +=   "</div>";
+        html +=   "<div class='pill'>" + assignments.length + " assignment(s)</div>";
+        html += "</div>";
+        html += "<div class='assignHeader'>Assignments</div>";
+        html += "<div id='assign_" + c.id + "'></div>";
 
-        card.innerHTML = topHtml;
+        card.innerHTML = html;
         dashboard.appendChild(card);
 
         var cont = document.getElementById("assign_" + c.id);
@@ -653,14 +634,11 @@
       var div = document.createElement("div");
       div.className = "assignment";
 
-      var pct = "";
+      var pct = "—";
       if(isFinite(Number(a.earned)) && isFinite(Number(a.possible)) && Number(a.possible) > 0){
         var p = (Number(a.earned)/Number(a.possible))*100;
         pct = (Math.round(p*10)/10).toFixed(1) + "%";
-      } else {
-        pct = "—";
       }
-
       var w = (a.weight === undefined || a.weight === null || a.weight === "") ? 1 : a.weight;
 
       var left = document.createElement("div");
@@ -706,7 +684,6 @@
     }
 
     function escapeHtml(str){
-      // basic safe output for Safari/Chrome
       str = String(str);
       return str
         .replace(/&/g,"&amp;")
@@ -717,9 +694,7 @@
     }
 
     // ======= GOOGLE SIGN-IN (Frontend-only) =======
-    // GIS calls window.handleCredentialResponse with a JWT "credential" string.
     window.handleCredentialResponse = function(response){
-      // NOTE: Frontend-only decode. Not secure. Good for demos.
       try{
         var jwt = response.credential;
         var payload = jwt.split(".")[1];
@@ -729,19 +704,15 @@
         setLoggedIn(name);
         enterApp();
       }catch(e){
-        // fallback to demo
         setLoggedIn("Student");
         enterApp();
       }
     };
 
     function base64UrlDecode(str){
-      // Safari friendly base64url -> base64
       str = str.replace(/-/g, "+").replace(/_/g, "/");
       while(str.length % 4) str += "=";
-      // atob exists in Safari + Chrome
       var decoded = atob(str);
-      // handle UTF-8
       var out = "";
       for(var i=0;i<decoded.length;i++){
         out += "%" + ("00" + decoded.charCodeAt(i).toString(16)).slice(-2);
@@ -750,75 +721,24 @@
     }
 
     function initGoogle(){
-      // If user didn't set client id, show a clear note + keep Demo button available.
       if(!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.indexOf("PASTE_YOUR_CLIENT_ID_HERE") !== -1){
         clientNote.innerHTML = "<b>Setup needed:</b> Paste your Google Client ID into <code>GOOGLE_CLIENT_ID</code> in the script.";
         return;
       }
-
-      // Configure GIS onload container
       var onloadDiv = document.getElementById("g_id_onload");
       onloadDiv.setAttribute("data-client_id", GOOGLE_CLIENT_ID);
       onloadDiv.setAttribute("data-callback", "handleCredentialResponse");
       onloadDiv.setAttribute("data-auto_prompt", "false");
     }
 
-    // ======= LOGIN FLOW =======
-    function enterApp(){
-      hide(loginPage);
-      show(dashboard);
-      render();
-    }
-
+    // ======= LOGIN =======
     demoLoginBtn.addEventListener("click", function(){
       setLoggedIn("Student");
       enterApp();
     });
 
-    // ======= ADMIN TRIGGER (require 5 taps OR long-press) =======
-    var tapCount = 0;
-    var tapTimer = null;
-    var pressTimer = null;
-
-    adminTrigger.addEventListener("click", function(){
-      // 5 taps within 1.2s
-      tapCount++;
-      if(tapTimer) clearTimeout(tapTimer);
-      tapTimer = setTimeout(function(){
-        tapCount = 0;
-      }, 1200);
-
-      if(tapCount >= 5){
-        tapCount = 0;
-        openAdmin();
-      }
-    });
-
-    // Long-press (mouse + touch)
-    adminTrigger.addEventListener("mousedown", function(){
-      pressTimer = setTimeout(function(){
-        openAdmin();
-      }, 1200);
-    });
-    adminTrigger.addEventListener("mouseup", function(){
-      if(pressTimer) clearTimeout(pressTimer);
-    });
-    adminTrigger.addEventListener("mouseleave", function(){
-      if(pressTimer) clearTimeout(pressTimer);
-    });
-
-    adminTrigger.addEventListener("touchstart", function(){
-      pressTimer = setTimeout(function(){
-        openAdmin();
-      }, 1200);
-    }, {passive:true});
-    adminTrigger.addEventListener("touchend", function(){
-      if(pressTimer) clearTimeout(pressTimer);
-    });
-
     // ======= ADMIN MODAL =======
     function openAdmin(){
-      // reset auth UI
       adminPass.value = "";
       hide(adminAuthMsg);
       show(adminAuthSection);
@@ -827,10 +747,8 @@
       buildClassSelect(classSelectA);
       buildClassSelect(classSelectO);
       show(adminModalOverlay);
-      // focus for accessibility
       setTimeout(function(){ adminPass.focus(); }, 0);
     }
-
     function closeAdmin(){
       hide(adminModalOverlay);
       clearMsgs();
@@ -840,7 +758,6 @@
     cancelAdminAuth.addEventListener("click", closeAdmin);
 
     adminModalOverlay.addEventListener("click", function(e){
-      // click outside modal closes
       if(e.target === adminModalOverlay) closeAdmin();
     });
 
@@ -856,12 +773,10 @@
       show(adminPanelSection);
     });
 
-    // tabs
     tabAdd.addEventListener("click", function(){ setActiveTab(tabAdd); });
     tabOverride.addEventListener("click", function(){ setActiveTab(tabOverride); });
     tabTools.addEventListener("click", function(){ setActiveTab(tabTools); });
 
-    // Save assignment
     saveAssignmentBtn.addEventListener("click", function(){
       clearMsgs();
       var classId = Number(classSelectA.value);
@@ -871,26 +786,10 @@
       var wVal = (weight.value || "").trim();
       var w = (wVal === "") ? 1 : Number(wVal);
 
-      if(!name){
-        saveErr.textContent = "Please enter an assignment name.";
-        show(saveErr);
-        return;
-      }
-      if(!isFinite(earned) || earned < 0){
-        saveErr.textContent = "Points earned must be a valid number ≥ 0.";
-        show(saveErr);
-        return;
-      }
-      if(!isFinite(possible) || possible <= 0){
-        saveErr.textContent = "Points possible must be a valid number > 0.";
-        show(saveErr);
-        return;
-      }
-      if(!isFinite(w) || w <= 0){
-        saveErr.textContent = "Weight must be a valid number > 0 (or leave blank).";
-        show(saveErr);
-        return;
-      }
+      if(!name){ saveErr.textContent="Please enter an assignment name."; show(saveErr); return; }
+      if(!isFinite(earned) || earned < 0){ saveErr.textContent="Points earned must be a valid number ≥ 0."; show(saveErr); return; }
+      if(!isFinite(possible) || possible <= 0){ saveErr.textContent="Points possible must be a valid number > 0."; show(saveErr); return; }
+      if(!isFinite(w) || w <= 0){ saveErr.textContent="Weight must be a valid number > 0 (or leave blank)."; show(saveErr); return; }
 
       var arr = getAssignments(classId);
       arr.push({ name:name, earned:earned, possible:possible, weight:w });
@@ -899,24 +798,15 @@
       saveMsg.textContent = "Saved!";
       show(saveMsg);
 
-      // clear inputs
-      assignName.value = "";
-      pointsEarned.value = "";
-      pointsPossible.value = "";
-      weight.value = "";
-
+      assignName.value=""; pointsEarned.value=""; pointsPossible.value=""; weight.value="";
       render();
     });
 
     clearFormBtn.addEventListener("click", function(){
       clearMsgs();
-      assignName.value = "";
-      pointsEarned.value = "";
-      pointsPossible.value = "";
-      weight.value = "";
+      assignName.value=""; pointsEarned.value=""; pointsPossible.value=""; weight.value="";
     });
 
-    // Override save/clear
     saveOverrideBtn.addEventListener("click", function(){
       clearMsgs();
       var classId = Number(classSelectO.value);
@@ -942,27 +832,26 @@
       render();
     });
 
-    // Tools: wipe
     wipeAllBtn.addEventListener("click", function(){
       clearMsgs();
       var ok = confirm("Wipe all local data (assignments + overrides + login) on this browser?");
       if(!ok) return;
-
       for(var i=0;i<classes.length;i++){
         localStorage.removeItem("assign_" + classes[i].id);
         localStorage.removeItem("override_" + classes[i].id);
       }
-      logOut();
+      localStorage.removeItem("loggedIn");
+      localStorage.removeItem("userLabel");
+
       toolsMsg.textContent = "All data wiped.";
       show(toolsMsg);
 
-      // return to login
       hide(dashboard);
       show(loginPage);
       subbarTitle.textContent = "Assignments";
     });
 
-    // Assignment edit/delete from dashboard (event delegation)
+    // Dashboard edit/delete
     document.addEventListener("click", function(e){
       var tgt = e.target;
       if(!tgt || !tgt.getAttribute) return;
@@ -973,12 +862,10 @@
       var classId = Number(tgt.getAttribute("data-class"));
       var index = Number(tgt.getAttribute("data-index"));
       var arr = getAssignments(classId);
-
       if(index < 0 || index >= arr.length) return;
 
       if(action === "delete"){
-        var ok = confirm("Delete this assignment?");
-        if(!ok) return;
+        if(!confirm("Delete this assignment?")) return;
         arr.splice(index, 1);
         setAssignments(classId, arr);
         render();
@@ -986,43 +873,37 @@
       }
 
       if(action === "edit"){
-        // Open admin modal directly to edit by pre-filling and replacing on save
-        openAdmin();
-        // auto-unlock if you want? (keeping password)
-        // Instead, we pre-fill after unlock, so store temp edit state:
+        // store pending edit + open admin (still requires password)
         lsSet("edit_pending", JSON.stringify({ classId: classId, index: index }));
-        // Small hint:
+        openAdmin();
         adminAuthMsg.textContent = "After unlocking, your assignment will load for editing.";
         adminAuthMsg.classList.remove("hidden");
       }
     });
 
-    // After unlock, load pending edit (if exists)
+    // Load pending edit after unlock
     submitAdminAuth.addEventListener("click", function(){
       if(adminPass.value !== "admin123") return;
 
       var pending = safeParse(lsGet("edit_pending",""), null);
       if(!pending) return;
 
-      // switch to Add/Edit tab
-      setActiveTab(tabAdd);
-
       var classId = pending.classId;
       var index = pending.index;
+
       var arr = getAssignments(classId);
       if(index < 0 || index >= arr.length){
         localStorage.removeItem("edit_pending");
         return;
       }
 
-      // Prefill
+      setActiveTab(tabAdd);
       classSelectA.value = String(classId);
       assignName.value = arr[index].name;
       pointsEarned.value = arr[index].earned;
       pointsPossible.value = arr[index].possible;
       weight.value = (arr[index].weight === undefined || arr[index].weight === null) ? "" : arr[index].weight;
 
-      // Change save behavior to "update"
       saveAssignmentBtn.textContent = "Update Assignment";
       saveAssignmentBtn.onclick = function(){
         clearMsgs();
@@ -1032,26 +913,10 @@
         var wVal = (weight.value || "").trim();
         var w = (wVal === "") ? 1 : Number(wVal);
 
-        if(!name){
-          saveErr.textContent = "Please enter an assignment name.";
-          show(saveErr);
-          return;
-        }
-        if(!isFinite(earned) || earned < 0){
-          saveErr.textContent = "Points earned must be a valid number ≥ 0.";
-          show(saveErr);
-          return;
-        }
-        if(!isFinite(possible) || possible <= 0){
-          saveErr.textContent = "Points possible must be a valid number > 0.";
-          show(saveErr);
-          return;
-        }
-        if(!isFinite(w) || w <= 0){
-          saveErr.textContent = "Weight must be a valid number > 0 (or leave blank).";
-          show(saveErr);
-          return;
-        }
+        if(!name){ saveErr.textContent="Please enter an assignment name."; show(saveErr); return; }
+        if(!isFinite(earned) || earned < 0){ saveErr.textContent="Points earned must be a valid number ≥ 0."; show(saveErr); return; }
+        if(!isFinite(possible) || possible <= 0){ saveErr.textContent="Points possible must be a valid number > 0."; show(saveErr); return; }
+        if(!isFinite(w) || w <= 0){ saveErr.textContent="Weight must be a valid number > 0 (or leave blank)."; show(saveErr); return; }
 
         var arr2 = getAssignments(classId);
         arr2[index] = { name:name, earned:earned, possible:possible, weight:w };
@@ -1060,26 +925,36 @@
         saveMsg.textContent = "Updated!";
         show(saveMsg);
 
-        // reset edit mode
         localStorage.removeItem("edit_pending");
         saveAssignmentBtn.textContent = "Save Assignment";
         saveAssignmentBtn.onclick = null;
-        // restore normal click handler by reloading page logic quickly:
-        // easiest safe way: close and re-open tab UI state
-        assignName.value = "";
-        pointsEarned.value = "";
-        pointsPossible.value = "";
-        weight.value = "";
+
+        assignName.value=""; pointsEarned.value=""; pointsPossible.value=""; weight.value="";
         render();
       };
 
       localStorage.removeItem("edit_pending");
     });
 
+    // ======= ADMIN TRIGGER: ONLY 5 CLICKS =======
+    // Remove long-press. Require 5 clicks within 1.2 seconds.
+    var tapCount = 0;
+    var tapTimer = null;
+
+    adminTrigger.addEventListener("click", function(){
+      tapCount++;
+      if(tapTimer) clearTimeout(tapTimer);
+      tapTimer = setTimeout(function(){ tapCount = 0; }, 1200);
+
+      if(tapCount >= 5){
+        tapCount = 0;
+        openAdmin();
+      }
+    });
+
     // ======= STARTUP =======
     function start(){
       initGoogle();
-
       if(isLoggedIn()){
         enterApp();
       } else {
@@ -1087,10 +962,8 @@
         hide(dashboard);
       }
     }
-
     start();
   })();
   </script>
 </body>
 </html>
-
