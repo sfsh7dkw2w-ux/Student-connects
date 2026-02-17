@@ -76,7 +76,7 @@ body{
 }
 .login button:hover{ opacity:0.9; }
 
-.hidden{ display:none; }
+.hidden{ display:none !important; }
 
 /* Modal */
 .modal{
@@ -162,12 +162,12 @@ body{
   <div id="dashboard" class="hidden"></div>
 </div>
 
-<!-- Admin Modal -->
-<div id="adminModal" class="modal hidden">
+<!-- Admin Modal (TRIPLE-HIDDEN ON LOAD) -->
+<div id="adminModal" class="modal hidden" hidden style="display:none;">
   <div class="modal-content" id="adminModalBox">
-    <div class="modal-title" id="adminTitle">Admin</div>
+    <div class="modal-title">Admin</div>
 
-    <!-- Step 1: Password -->
+    <!-- Step 1 -->
     <div id="adminStepPass">
       <input type="password" id="adminPassInput" placeholder="Enter admin password" inputmode="numeric" />
       <div class="modal-row">
@@ -177,7 +177,7 @@ body{
       <div id="adminPassErr" class="errorText hidden">Incorrect password.</div>
     </div>
 
-    <!-- Step 2: Add assignment -->
+    <!-- Step 2 -->
     <div id="adminStepForm" class="hidden">
       <select id="classSelect"></select>
       <input type="text" id="assignName" placeholder="Assignment name (ex: Homework 1)" />
@@ -222,6 +222,25 @@ body{
   var classSelect = document.getElementById("classSelect");
   var assignName = document.getElementById("assignName");
   var saveAssign = document.getElementById("saveAssign");
+
+  // FORCE modal hidden on load (extra safety)
+  forceHideModal();
+
+  function forceHideModal(){
+    adminModal.classList.add("hidden");
+    adminModal.setAttribute("hidden", "hidden");
+    adminModal.style.display = "none";
+  }
+
+  function showModal(){
+    adminModal.classList.remove("hidden");
+    adminModal.removeAttribute("hidden");
+    adminModal.style.display = "flex";
+  }
+
+  function closeAdmin(){
+    forceHideModal();
+  }
 
   // LOGIN
   loginBtn.addEventListener("click", function(){
@@ -285,7 +304,7 @@ body{
             .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
   }
 
-  // DELETE (event delegation)
+  // DELETE
   document.addEventListener("click", function(e){
     var t = e.target;
     if(!t || !t.getAttribute) return;
@@ -300,14 +319,13 @@ body{
     render();
   });
 
-  // ADMIN: 5 taps on header (iPhone Safari friendly)
+  // ADMIN: 5 taps on header (iPhone friendly)
   var tapCount = 0;
   var tapTimer = null;
 
   function registerTap(){
     tapCount++;
     if(tapTimer) clearTimeout(tapTimer);
-    // give more time so it’s easier to trigger
     tapTimer = setTimeout(function(){ tapCount = 0; }, 2000);
 
     if(tapCount >= 5){
@@ -316,52 +334,46 @@ body{
     }
   }
 
-  // Use BOTH click + touchend for iOS reliability
   header.addEventListener("click", registerTap);
   header.addEventListener("touchend", function(e){
-    // prevent "ghost click" double counting
     e.preventDefault();
     registerTap();
   }, {passive:false});
 
   function openAdmin(){
-    // reset modal state every time
+    // reset state
     adminPassInput.value = "";
     assignName.value = "";
     adminPassErr.classList.add("hidden");
-
     adminStepPass.classList.remove("hidden");
     adminStepForm.classList.add("hidden");
 
-    adminModal.classList.remove("hidden");
+    showModal();
     setTimeout(function(){ adminPassInput.focus(); }, 50);
   }
 
-  function closeAdmin(){
-    adminModal.classList.add("hidden");
-  }
+  // close actions
+  adminCloseBtn1.addEventListener("click", closeAdmin);
+  adminCloseBtn2.addEventListener("click", closeAdmin);
 
-  // close if tapping outside the box
+  // click outside closes
   adminModal.addEventListener("click", function(e){
     if(e.target === adminModal) closeAdmin();
   });
-  // prevent inside clicks from closing
+  // prevent inside close
   adminModalBox.addEventListener("click", function(e){
     e.stopPropagation();
   });
 
-  adminCloseBtn1.addEventListener("click", closeAdmin);
-  adminCloseBtn2.addEventListener("click", closeAdmin);
-
+  // unlock
   adminUnlockBtn.addEventListener("click", function(){
-    var pass = (adminPassInput.value || "").replace(/\s+/g,""); // trim all spaces/newlines
+    var pass = (adminPassInput.value || "").replace(/\s+/g,"");
     if(pass !== ADMIN_PASSWORD){
       adminPassErr.classList.remove("hidden");
       return;
     }
     adminPassErr.classList.add("hidden");
 
-    // build class dropdown
     classSelect.innerHTML = "";
     for(var i=0;i<classes.length;i++){
       var opt = document.createElement("option");
@@ -375,6 +387,7 @@ body{
     setTimeout(function(){ assignName.focus(); }, 50);
   });
 
+  // save assignment
   saveAssign.addEventListener("click", function(){
     var classId = classSelect.value;
     var name = (assignName.value || "").trim();
