@@ -286,8 +286,9 @@
 (function(){
   // ===== CONFIG =====
   var ADMIN_PASSWORD = "20126693";
-  var isAdminUnlocked = false; // controls ALL edits/deletes/overrides
+  var isAdminUnlocked = false;
 
+  // IMPORTANT: 6 classes (all visible)
   var classes = [
     {id:1,name:"Chemistry S2",teacher:"Bazzi-Hijazi, R"},
     {id:2,name:"Arabic 2 S2",teacher:"Raishouni, O"},
@@ -298,8 +299,8 @@
   ];
 
   // ===== ELEMENTS =====
-  var login = document.getElementById("login");
   var loginBtn = document.getElementById("loginBtn");
+  var login = document.getElementById("login");
   var dashboard = document.getElementById("dashboard");
   var header = document.getElementById("header");
 
@@ -328,10 +329,9 @@
 
   var adminAssignList = document.getElementById("adminAssignList");
 
-  // Edit state (admin only)
-  var editingIndex = null; // number or null
+  var editingIndex = null;
 
-  // ===== Always start with admin hidden =====
+  // ===== Modal helpers =====
   forceHideAdmin();
 
   function forceHideAdmin(){
@@ -345,8 +345,6 @@
     adminModal.style.display = "flex";
   }
   function closeAdminModal(){
-    // Closing the modal LOCKS admin (safer).
-    // You can always re-open with 5 taps.
     exitAdminMode();
   }
   function exitAdminMode(){
@@ -354,7 +352,7 @@
     editingIndex = null;
     resetAssignmentForm();
     forceHideAdmin();
-    render(); // removes any admin-only visibility
+    render();
   }
 
   // ===== LOGIN =====
@@ -391,23 +389,18 @@
   function computePercent(assignments){
     var earnedSum = 0;
     var possibleSum = 0;
-
     for(var i=0;i<assignments.length;i++){
       var a = assignments[i];
       var earned = Number(a.earned);
       var possible = Number(a.possible);
-
       if(!isFinite(earned) || !isFinite(possible)) continue;
       if(possible <= 0) continue;
-
       earnedSum += earned;
       possibleSum += possible;
     }
-
     if(possibleSum <= 0) return null;
     return (earnedSum / possibleSum) * 100;
   }
-
   function letterFromPercent(p){
     if(p === null) return "--";
     if(p >= 93) return "A";
@@ -423,17 +416,17 @@
     if(p >= 60) return "D-";
     return "F";
   }
-
   function formatPercent(p){
     if(p === null) return "--";
     return (Math.round(p * 10) / 10).toFixed(1) + "%";
   }
 
-  // ===== Render dashboard (READ-ONLY for non-admin) =====
+  // ===== Render dashboard (all 6 classes) =====
   function render(){
     dashboard.innerHTML = "";
 
-    for(var i=0;i<classes.length;i++){
+    // Force rendering ALL classes
+    for(var i=0; i<classes.length; i++){
       var c = classes[i];
       var assignments = getAssignments(c.id);
 
@@ -443,17 +436,16 @@
       var override = getOverride(c.id);
       var overallLetter = override ? override : computedLetter;
 
+      // IMPORTANT: "overridden" tag ONLY visible in admin mode
+      var overrideNote = (override && isAdminUnlocked) ? " • overridden" : "";
+
       var card = document.createElement("div");
       card.className = "card";
-
-      var overallLine =
-        "<div class='overall'>Overall: " + escapeHtml(overallLetter) +
-        " <small>(" + escapeHtml(formatPercent(percent)) + (override ? " • overridden" : "") + ")</small></div>";
-
       card.innerHTML =
         "<div class='title'>" + escapeHtml(c.name) + "</div>" +
         "<div class='teacher'>" + escapeHtml(c.teacher) + "</div>" +
-        overallLine +
+        "<div class='overall'>Overall: " + escapeHtml(overallLetter) +
+        " <small>(" + escapeHtml(formatPercent(percent)) + overrideNote + ")</small></div>" +
         "<div id='assign_" + c.id + "'></div>";
 
       dashboard.appendChild(card);
@@ -473,13 +465,13 @@
       }
     }
 
-    // If admin is open/unlocked, refresh admin list too
+    // Keep admin list refreshed if unlocked
     if(isAdminUnlocked && !adminStepTools.classList.contains("hidden")){
       renderAdminAssignmentList();
     }
   }
 
-  // Dashboard assignment row is READ-ONLY (no edit/delete controls exist here)
+  // Dashboard assignment row is READ-ONLY
   function addAssignmentRow(container, a){
     var div = document.createElement("div");
     div.className = "assignment";
@@ -505,8 +497,8 @@
 
     left.appendChild(name);
     left.appendChild(meta);
-
     div.appendChild(left);
+
     container.appendChild(div);
   }
 
@@ -525,7 +517,6 @@
     tapCount++;
     if(tapTimer) clearTimeout(tapTimer);
     tapTimer = setTimeout(function(){ tapCount = 0; }, 2000);
-
     if(tapCount >= 5){
       tapCount = 0;
       openAdmin();
@@ -539,12 +530,11 @@
   }, {passive:false});
 
   header.addEventListener("click", function(){
-    if(Date.now() - lastTouchTime < 600) return; // ignore ghost click
+    if(Date.now() - lastTouchTime < 600) return;
     registerTap();
   });
 
   function openAdmin(){
-    // reset modal state (locked until password correct)
     isAdminUnlocked = false;
     editingIndex = null;
     resetAssignmentForm();
@@ -555,7 +545,6 @@
     adminStepPass.classList.remove("hidden");
     adminStepTools.classList.add("hidden");
 
-    // show modal
     showAdmin();
     setTimeout(function(){ adminPassInput.focus(); }, 50);
   }
@@ -586,7 +575,6 @@
 
     isAdminUnlocked = true;
 
-    // populate class dropdown
     classSelect.innerHTML = "";
     for(var i=0;i<classes.length;i++){
       var opt = document.createElement("option");
@@ -595,18 +583,17 @@
       classSelect.appendChild(opt);
     }
 
-    // load override for selected class
     overrideInput.value = getOverride(classSelect.value);
 
     adminStepPass.classList.add("hidden");
     adminStepTools.classList.remove("hidden");
 
     renderAdminAssignmentList();
-    render(); // dashboard stays read-only but reflects any stored values
+    render(); // admin sees overridden label; non-admin won't
+
     setTimeout(function(){ assignName.focus(); }, 50);
   });
 
-  // When class changes in admin
   classSelect.addEventListener("change", function(){
     if(!isAdminUnlocked) return;
     overrideInput.value = getOverride(classSelect.value);
@@ -665,10 +652,8 @@
     var arr = getAssignments(classId);
 
     if(editingIndex === null){
-      // ADD
       arr.push({ name:name, earned:earned, possible:possible });
     } else {
-      // EDIT
       if(editingIndex < 0 || editingIndex >= arr.length){
         alert("That assignment no longer exists. Refreshing list.");
         editingIndex = null;
@@ -690,7 +675,6 @@
 
     var classId = classSelect.value;
     var arr = getAssignments(classId);
-
     adminAssignList.innerHTML = "";
 
     if(arr.length === 0){
@@ -760,11 +744,9 @@
           arr2.splice(idx, 1);
           setAssignments(classId, arr2);
 
-          // if we deleted the one being edited, reset form
           if(editingIndex === idx){
             resetAssignmentForm();
           }
-          // if deleted earlier index, shift editingIndex down
           if(editingIndex !== null && idx < editingIndex){
             editingIndex = editingIndex - 1;
           }
