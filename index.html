@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Student Portal</title>
 
 <style>
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
     background: #eef2f5;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 /* Top Header */
@@ -36,7 +39,7 @@ body {
     padding: 15px;
 }
 
-/* Class Card */
+/* Card */
 .card {
     background: white;
     border-radius: 12px;
@@ -63,6 +66,19 @@ body {
 
 .grade {
     margin-top: 6px;
+    font-weight: bold;
+}
+
+.assignment {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 14px;
+}
+
+.delete-btn {
+    color: red;
+    cursor: pointer;
     font-weight: bold;
 }
 
@@ -93,62 +109,12 @@ body {
 
 <div class="container">
 
-<!-- LOGIN PAGE -->
 <div id="loginPage" class="login">
     <h2>Sign In</h2>
     <button class="google-btn" onclick="login()">Sign in with Google</button>
 </div>
 
-<!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
-
-    <!-- 1 -->
-    <div class="card">
-        <div class="title"><span class="arrow">▶</span>1 - Chemistry S2 (623090)</div>
-        <div class="teacher">Bazzi-Hijazi, R</div>
-        <div class="grade" id="grade1">Current Quarter 3 HS Grade: A</div>
-        <div id="assign1"></div>
-    </div>
-
-    <!-- 2 -->
-    <div class="card">
-        <div class="title"><span class="arrow">▶</span>2 - Arabic 2 S2 (625130)</div>
-        <div class="teacher">Raishouni, O</div>
-        <div class="grade" id="grade2">Current Quarter 3 HS Grade: A</div>
-        <div id="assign2"></div>
-    </div>
-
-    <!-- 3 -->
-    <div class="card">
-        <div class="title"><span class="arrow">▶</span>3 - PE/Health 9 Boys (629030)</div>
-        <div class="teacher">Hamade, M</div>
-        <div class="grade" id="grade3">Current Quarter 3 HS Grade: A</div>
-        <div id="assign3"></div>
-    </div>
-
-    <!-- 4 -->
-    <div class="card">
-        <div class="title"><span class="arrow">▶</span>4 - Language Arts 2 (621020)</div>
-        <div class="teacher">Marwani, H</div>
-        <div class="grade" id="grade4">Current Quarter 3 HS Grade: A</div>
-        <div id="assign4"></div>
-    </div>
-
-    <!-- 5 -->
-    <div class="card">
-        <div class="title"><span class="arrow">▶</span>5 - AP Human Geography (622270)</div>
-        <div class="teacher">Jedele, S</div>
-        <div class="grade" id="grade5">Current Quarter 3 HS Grade: A-</div>
-        <div id="assign5"></div>
-    </div>
-
-    <!-- 6 -->
-    <div class="card">
-        <div class="title"><span class="arrow">▶</span>6 - Algebra 2 S2 (624026)</div>
-        <div class="teacher">AlHadrawi, M</div>
-        <div class="grade" id="grade6">Current Semester 2 HS Grade: A</div>
-        <div id="assign6"></div>
-    </div>
 
 </div>
 
@@ -156,35 +122,85 @@ body {
 
 <script>
 
+const classes = [
+    { id:1, name:"Chemistry S2 (623090)", teacher:"Bazzi-Hijazi, R", grade:"A" },
+    { id:2, name:"Arabic 2 S2 (625130)", teacher:"Raishouni, O", grade:"A" },
+    { id:3, name:"PE/Health 9 Boys (629030)", teacher:"Hamade, M", grade:"A" },
+    { id:4, name:"Language Arts 2 (621020)", teacher:"Marwani, H", grade:"A" },
+    { id:5, name:"AP Human Geography (622270)", teacher:"Jedele, S", grade:"A-" },
+    { id:6, name:"Algebra 2 S2 (624026)", teacher:"AlHadrawi, M", grade:"A" }
+];
+
 let adminUnlocked = false;
 
-function login() {
+function login(){
     document.getElementById("loginPage").classList.add("hidden");
     document.getElementById("dashboard").classList.remove("hidden");
+    renderClasses();
 }
 
-function adminPanel() {
+function renderClasses(){
+    const dash = document.getElementById("dashboard");
+    dash.innerHTML = "";
+
+    classes.forEach(c => {
+
+        let savedGrade = localStorage.getItem("grade"+c.id) || c.grade;
+        let savedAssignments = JSON.parse(localStorage.getItem("assign"+c.id)) || [];
+
+        let card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+            <div class="title"><span class="arrow">▶</span>${c.id} - ${c.name}</div>
+            <div class="teacher">${c.teacher}</div>
+            <div class="grade" id="grade${c.id}">
+                Current Grade: ${savedGrade}
+            </div>
+            <div id="assign${c.id}"></div>
+        `;
+
+        dash.appendChild(card);
+
+        let assignDiv = document.getElementById("assign"+c.id);
+
+        savedAssignments.forEach((a,index)=>{
+            createAssignmentElement(c.id,a.name,a.score,index);
+        });
+    });
+}
+
+function createAssignmentElement(classId,name,score,index){
+
+    let div = document.createElement("div");
+    div.className = "assignment";
+    div.innerHTML = `
+        <span>${name} - ${score}</span>
+        <span class="delete-btn" onclick="removeAssignment(${classId},${index})">✕</span>
+    `;
+
+    document.getElementById("assign"+classId).appendChild(div);
+}
+
+function adminPanel(){
 
     if(!adminUnlocked){
         let pass = prompt("Enter admin password:");
-        if(pass === "admin123"){
-            adminUnlocked = true;
-            alert("Admin Mode Enabled");
-        } else {
-            return;
-        }
+        if(pass !== "admin123") return;
+        adminUnlocked = true;
+        alert("Admin Mode Enabled");
     }
 
-    let classNumber = prompt("Enter class number (1-6):");
-    if(!classNumber) return;
+    let classId = prompt("Enter class number (1-6):");
+    if(!classId) return;
 
-    let action = prompt("Type 1 to Change Grade\nType 2 to Add Assignment");
+    let action = prompt("1 = Change Grade\n2 = Add Assignment");
 
     if(action == "1"){
         let newGrade = prompt("Enter new grade:");
         if(newGrade){
-            document.getElementById("grade" + classNumber)
-                .innerText = "Current Quarter 3 HS Grade: " + newGrade;
+            localStorage.setItem("grade"+classId,newGrade);
+            renderClasses();
         }
     }
 
@@ -192,12 +208,19 @@ function adminPanel() {
         let name = prompt("Assignment name:");
         let score = prompt("Score:");
         if(name && score){
-            let p = document.createElement("p");
-            p.innerText = name + " - " + score;
-            document.getElementById("assign" + classNumber)
-                .appendChild(p);
+            let assignments = JSON.parse(localStorage.getItem("assign"+classId)) || [];
+            assignments.push({name,score});
+            localStorage.setItem("assign"+classId,JSON.stringify(assignments));
+            renderClasses();
         }
     }
+}
+
+function removeAssignment(classId,index){
+    let assignments = JSON.parse(localStorage.getItem("assign"+classId)) || [];
+    assignments.splice(index,1);
+    localStorage.setItem("assign"+classId,JSON.stringify(assignments));
+    renderClasses();
 }
 
 </script>
