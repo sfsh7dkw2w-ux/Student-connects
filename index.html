@@ -3,34 +3,32 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Student Portal</title>
+<title>CampusPortal</title>
 
 <style>
   :root{
-    --bg:#eef2f5;
+    /* Portal-ish palette (similar vibe, not identical) */
+    --page-bg:#eef2f5;
     --panel:#ffffff;
-    --border:#cdd7e2;
-    --header:#2f425a;
-    --header2:#4f6d8c;
-    --bar:#5a7896;
-    --barDark:#496581;
-    --soft:#f3f6fa;
+    --border:#cfd8e3;
+    --bar:#5b7896;
+    --bar2:#46627d;
     --text:#1f2a33;
-    --muted:#657689;
-    --accent:#7fc24a;   /* unique accent (not matching original branding) */
-    --accent2:#3a7bd5;  /* unique accent */
+    --muted:#6b7b8a;
+    --tableHead:#eef4fa;
+    --rowAlt:#f7fbff;
   }
 
   *{ box-sizing:border-box; }
   body{
     margin:0;
-    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
-    background:var(--bg);
+    font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+    background:var(--page-bg);
     color:var(--text);
   }
 
-  /* Top strip */
-  .top-strip{
+  /* Top header line */
+  .topHeader{
     background:#fff;
     border-bottom:1px solid #d6dee8;
     padding:10px 14px;
@@ -47,11 +45,28 @@
     font-size:20px;
     letter-spacing:-0.2px;
   }
-  .mark{
-    width:30px;height:30px;border-radius:8px;
-    background:linear-gradient(135deg,var(--accent),var(--accent2));
+  .brandMark{
+    width:34px;height:34px;
+    position:relative;
   }
-  .district{
+  /* Distinct logo: ring + “leaf” but not the same */
+  .brandMark .ring{
+    position:absolute; inset:0;
+    border-radius:50%;
+    border:8px solid #7bc24a;   /* green ring */
+    background:#fff;
+  }
+  .brandMark .leaf{
+    position:absolute;
+    width:16px; height:28px;
+    background:#3b74c9;         /* blue leaf */
+    border-radius:16px 16px 16px 16px;
+    right:4px; bottom:2px;
+    transform:rotate(-25deg);
+    opacity:.95;
+  }
+
+  .districtSmall{
     font-weight:800;
     color:#1f2a33;
     opacity:.85;
@@ -64,10 +79,10 @@
     padding:14px;
   }
 
-  /* Login layout (similar structure, distinct styling) */
-  .login-grid{
+  /* Login grid like the screenshot structure */
+  .loginGrid{
     display:grid;
-    grid-template-columns: 360px 1fr;
+    grid-template-columns: 340px 1fr;
     gap:16px;
     align-items:start;
   }
@@ -75,151 +90,138 @@
   .panel{
     background:var(--panel);
     border:1px solid var(--border);
-    border-radius:6px;
+    border-radius:4px;
     overflow:hidden;
   }
-  .panel-bar{
+  .panelBar{
     background:var(--bar);
     color:#fff;
     padding:10px 12px;
     font-weight:900;
     font-size:18px;
   }
-  .panel-body{
-    padding:16px;
-  }
+  .panelBody{ padding:16px; }
 
-  /* Fake sign-in button (NOT Google, on purpose) */
-  .signin-btn{
+  /* “Portal” button (no Google branding) */
+  .portalBtn{
     width:100%;
     display:flex;
     align-items:center;
     justify-content:center;
     gap:10px;
     padding:12px 14px;
-    border-radius:8px;
-    border:1px solid #d9e2ec;
+    border-radius:6px;
+    border:1px solid #cfd8e3;
     background:#fff;
     cursor:pointer;
     font-weight:900;
-    color:#223040;
+    color:#2a2a2a;
     box-shadow:0 1px 0 rgba(0,0,0,0.04);
     user-select:none;
     -webkit-user-select:none;
   }
-  .signin-badge{
-    width:18px;height:18px;border-radius:4px;
-    background:linear-gradient(135deg,var(--accent),var(--accent2));
+  .portalBtnIcon{
+    width:20px;height:20px;border-radius:4px;
+    background:linear-gradient(135deg,#7bc24a,#3b74c9);
   }
-  .signin-sub{
-    margin-top:10px;
+
+  /* Welcome panel */
+  .welcomeWrap{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:260px;
+    padding:22px;
+  }
+  .welcomeTitle{
+    font-style:italic;
+    font-weight:800;
+    color:#111;
+    margin:0 0 14px 0;
+    font-size:18px;
+  }
+  .logoRow{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    justify-content:center;
+    flex-wrap:wrap;
+  }
+  .bigLogoMark{
+    width:120px;height:120px;border-radius:50%;
+    border:18px solid #7bc24a;
+    position:relative;
+    background:#fff;
+  }
+  .bigLogoMark:after{
+    content:"";
+    position:absolute;
+    width:36px;height:64px;
+    background:#3b74c9;
+    border-radius:36px;
+    right:12px; bottom:10px;
+    transform:rotate(-25deg);
+    opacity:.95;
+  }
+  .logoText{
+    font-size:46px;
+    font-weight:1000;
+    letter-spacing:-0.5px;
+    text-align:center;
+  }
+  .logoText span{ font-weight:1000; }
+
+  .hint{
+    margin-top:14px;
     font-size:12px;
     color:var(--muted);
     line-height:1.35;
-  }
-
-  /* Welcome card */
-  .welcome-wrap{
-    padding:18px;
-    min-height:260px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-  }
-  .welcome-inner{
-    width:100%;
-    max-width:720px;
-  }
-  .welcome-title{
-    font-style:italic;
-    font-weight:800;
-    margin:0 0 14px 0;
-    color:#0d1b2a;
-  }
-  .hero{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    gap:18px;
-    flex-wrap:wrap;
-  }
-  .hero-ring{
-    width:110px;height:110px;border-radius:50%;
-    border:16px solid rgba(127,194,74,0.85);
-    background:#fff;
-    position:relative;
-  }
-  .hero-ring:after{
-    content:"";
-    position:absolute;
-    right:12px; bottom:10px;
-    width:34px;height:60px;border-radius:34px;
-    background:rgba(58,123,213,0.9);
-    transform:rotate(-22deg);
-  }
-  .hero-text{
-    font-size:46px;
-    font-weight:1000;
-    letter-spacing:-0.6px;
     text-align:center;
   }
-  .hero-text span{ font-weight:1000; }
 
-  .notice{
-    margin-top:14px;
-    padding:12px 14px;
-    border:1px dashed #cfd8e3;
-    border-radius:10px;
-    background:#fbfdff;
-    color:#394a59;
-    font-size:12px;
-    line-height:1.35;
-  }
-
-  /* Assignments view */
-  .hidden{ display:none !important; }
-
-  .top-actions{
+  /* Assignments view header bar */
+  .topActions{
     display:flex;
     justify-content:flex-end;
     margin-bottom:10px;
   }
-  .signout{
+  .signOutBtn{
     border:1px solid var(--border);
     background:#fff;
     padding:10px 12px;
-    border-radius:10px;
+    border-radius:8px;
     cursor:pointer;
     font-weight:900;
   }
 
-  .assignments-header{
-    background:var(--barDark);
+  .assignmentsHeader{
+    background:var(--bar2);
     color:#fff;
     padding:8px 10px;
-    border-radius:6px 6px 0 0;
+    border-radius:4px 4px 0 0;
     font-weight:1000;
     display:flex;
     align-items:center;
     justify-content:space-between;
     gap:10px;
   }
-  .assignments-header .right{
-    font-weight:800;
+  .assignmentsHeader .right{
+    font-weight:900;
     opacity:.95;
     font-size:12px;
     white-space:nowrap;
   }
 
-  .class-block{
+  /* Class section */
+  .classBlock{
     border:1px solid var(--border);
     border-top:none;
     background:#fff;
-    border-radius:0 0 6px 6px;
+    border-radius:0 0 4px 4px;
     margin-bottom:14px;
     overflow:hidden;
   }
-  .class-top{
+  .classTop{
     background:#dbe7f2;
     border-bottom:1px solid var(--border);
     padding:8px 10px;
@@ -229,26 +231,26 @@
     justify-content:space-between;
     gap:10px;
   }
-  .class-top .left{
+  .classTop .left{
     display:flex;
     flex-wrap:wrap;
     gap:10px;
     align-items:center;
     font-weight:900;
-    color:#10263a;
+    color:#0b2d4a;
   }
-  .class-top .grade{
+  .classTop .gradeLine{
     font-weight:1000;
     color:#0b2d4a;
   }
-  .class-top .teacher{
+  .classTop .teacherLine{
     font-weight:900;
     color:#0b2d4a;
     opacity:.92;
   }
 
-  /* Table: make it feel like SIS tables */
-  .table-wrap{
+  /* Table wrapper (mobile scroll) */
+  .tableWrap{
     width:100%;
     overflow:auto;
     -webkit-overflow-scrolling:touch;
@@ -257,11 +259,11 @@
   table{
     border-collapse:collapse;
     width:100%;
-    min-width:980px; /* forces horizontal scroll on mobile like real portals */
+    min-width:940px; /* small screens scroll horizontally */
     font-size:12px;
   }
   thead th{
-    background:#eef4fa;
+    background:var(--tableHead);
     text-align:left;
     padding:7px 10px;
     border-bottom:1px solid var(--border);
@@ -274,57 +276,65 @@
     border-bottom:1px solid #e7edf5;
     white-space:nowrap;
   }
-  tbody tr:nth-child(even){ background:#f8fbff; }
-  .center{ text-align:center; }
+  tbody tr:nth-child(even){ background:var(--rowAlt); }
+
+  .col-center{ text-align:center; }
   .muted{ color:var(--muted); }
 
-  /* Mobile */
+  .hidden{ display:none !important; }
+
+  .footerNote{
+    margin-top:10px;
+    text-align:center;
+    font-size:11px;
+    color:#7a8794;
+  }
+
   @media (max-width: 900px){
-    .login-grid{ grid-template-columns: 1fr; }
-    .hero-text{ font-size:38px; }
-    .hero-ring{ width:90px;height:90px;border-width:14px; }
+    .loginGrid{ grid-template-columns: 1fr; }
+    .logoText{ font-size:38px; }
+    .bigLogoMark{ width:95px; height:95px; border-width:14px; }
   }
 </style>
 </head>
 
 <body>
-  <div class="top-strip">
+  <div class="topHeader">
     <div class="brand">
-      <div class="mark" aria-hidden="true"></div>
-      <div>Student Portal</div>
+      <div class="brandMark" aria-hidden="true">
+        <div class="ring"></div>
+        <div class="leaf"></div>
+      </div>
+      <div>CampusPortal</div>
     </div>
-    <div class="district">District Student Access</div>
+    <div class="districtSmall">District Student Access</div>
   </div>
 
   <div class="page">
 
     <!-- LOGIN VIEW -->
-    <div id="loginView" class="login-grid">
+    <div id="loginView" class="loginGrid">
       <div class="panel">
-        <div class="panel-bar">Student Login</div>
-        <div class="panel-body">
-          <button id="enterBtn" class="signin-btn" type="button">
-            <span class="signin-badge" aria-hidden="true"></span>
-            Continue to Portal
+        <div class="panelBar">Portal Login</div>
+        <div class="panelBody">
+          <button id="enterBtn" class="portalBtn" type="button">
+            <span class="portalBtnIcon" aria-hidden="true"></span>
+            Continue
           </button>
-          <div class="signin-sub">
-            This is a demo-style portal page. Clicking the button takes you to the Assignments view.
-          </div>
+          <div class="hint">Tap “Continue” to view assignments.</div>
         </div>
       </div>
 
       <div class="panel">
-        <div class="panel-bar">Welcome</div>
-        <div class="welcome-wrap">
-          <div class="welcome-inner">
-            <p class="welcome-title">Welcome to</p>
-            <div class="hero">
-              <div class="hero-ring" aria-hidden="true"></div>
-              <div class="hero-text"><span>Student</span>Portal</div>
+        <div class="panelBar">Welcome</div>
+        <div class="welcomeWrap">
+          <div style="width:100%;">
+            <p class="welcomeTitle">Welcome to</p>
+            <div class="logoRow">
+              <div class="bigLogoMark" aria-hidden="true"></div>
+              <div class="logoText"><span>Campus</span>Portal</div>
             </div>
-            <div class="notice">
-              Tip: This layout is designed to be mobile-friendly. On phones, the assignments table scrolls horizontally.
-            </div>
+            <div class="hint">Mobile-friendly: tables scroll sideways on phones.</div>
           </div>
         </div>
       </div>
@@ -332,16 +342,18 @@
 
     <!-- ASSIGNMENTS VIEW -->
     <div id="assignmentsView" class="hidden">
-      <div class="top-actions">
-        <button id="signOutBtn" class="signout" type="button">Sign out</button>
+      <div class="topActions">
+        <button id="signOutBtn" class="signOutBtn" type="button">Sign out</button>
       </div>
 
-      <div class="assignments-header">
+      <div class="assignmentsHeader">
         <div>Assignments</div>
         <div class="right">Show All</div>
       </div>
 
       <div id="classesContainer"></div>
+
+      <div class="footerNote">Demo portal interface (not an official school system).</div>
     </div>
 
   </div>
@@ -354,96 +366,93 @@
   var signOutBtn = document.getElementById("signOutBtn");
   var classesContainer = document.getElementById("classesContainer");
 
-  // 6 classes, overall A, assignments all 3/4
   var classes = [
-    { per:"Per 1", name:"Chemistry S2", code:"(623090)", teacher:"Teacher: Bazzi-Hijazi, R" },
-    { per:"Per 2", name:"Arabic 2 S2", code:"(625130)", teacher:"Teacher: Raishouni, O" },
-    { per:"Per 3", name:"PE/Health 9 Boys", code:"(629030)", teacher:"Teacher: Hamade, M" },
-    { per:"Per 4", name:"Language Arts 2", code:"(621020)", teacher:"Teacher: Marwani, H" },
-    { per:"Per 5", name:"AP Human Geography", code:"(622270)", teacher:"Teacher: Jedele, S" },
-    { per:"Per 6", name:"Algebra 2 S2", code:"(624026)", teacher:"Teacher: AlHadrawi, M" }
+    { id:1, per:"Per 1", name:"Chemistry S2", code:"(623090)", teacher:"Bazzi-Hijazi, R" },
+    { id:2, per:"Per 2", name:"Arabic 2 S2", code:"(625130)", teacher:"Raishouni, O" },
+    { id:3, per:"Per 3", name:"PE/Health 9 Boys", code:"(629030)", teacher:"Hamade, M" },
+    { id:4, per:"Per 4", name:"Language Arts 2", code:"(621020)", teacher:"Marwani, H" },
+    { id:5, per:"Per 5", name:"AP Human Geography", code:"(622270)", teacher:"Jedele, S" },
+    { id:6, per:"Per 6", name:"Algebra 2 S2", code:"(624026)", teacher:"AlHadrawi, M" }
   ];
 
-  function assignmentsFor(idx){
-    // All 3/4 as requested
-    var base = [
+  function assignmentsFor(classId){
+    // ALL 3/4 as requested
+    var rows = [
       { due:"02/12/2026", assigned:"02/11/2026", title:"Practice Assessment", pts:4, score:3 },
       { due:"02/11/2026", assigned:"02/09/2026", title:"Study Packet", pts:4, score:3 },
       { due:"02/04/2026", assigned:"02/04/2026", title:"Quiz", pts:4, score:3 },
       { due:"02/02/2026", assigned:"02/02/2026", title:"Unit Assignment", pts:4, score:3 }
     ];
-    // small per-class flavor (still not matching real portal verbatim)
-    var names = [
-      ["Chemical Reactions Lab","Equations Practice","Reaction Packet","Unit Review"],
-      ["Speaking Check","Social Schedule","Vocabulary List","Listening Practice"],
-      ["Week 5 Activity","Unit Skill Check","Week 4 Activity","Health Unit"],
-      ["Claim & Evidence","Theme Baseline","Inference Baseline","Reading Response"],
-      ["Key Concepts Sheet","Overview Notes","Unit Test","Reading Questions"],
-      ["Solve Unit Review","Analyze Practice","Model Practice","Quiz Review"]
-    ];
-    for (var i=0;i<base.length;i++){
-      base[i].title = names[idx][i];
-    }
-    return base;
+
+    // small per-class flavor (still 3/4 everywhere)
+    if(classId===2){ rows[0].title="Speaking Check"; rows[1].title="Vocabulary List"; }
+    if(classId===3){ rows[0].title="Week Activity"; rows[2].title="Skills Check"; }
+    if(classId===4){ rows[0].title="Claim & Evidence"; rows[1].title="Theme Baseline"; }
+    if(classId===5){ rows[0].title="Key Concepts"; rows[2].title="Unit Test"; }
+    if(classId===6){ rows[0].title="Solve Review"; rows[2].title="Radicals Quiz"; }
+
+    return rows;
   }
 
-  function render(){
+  function renderAssignments(){
     classesContainer.innerHTML = "";
-
-    for (var i=0;i<classes.length;i++){
+    for(var i=0;i<classes.length;i++){
       var c = classes[i];
-      var a = assignmentsFor(i);
+      var rows = assignmentsFor(c.id);
 
       var block = document.createElement("div");
-      block.className = "class-block";
+      block.className = "classBlock";
 
       var top = document.createElement("div");
-      top.className = "class-top";
+      top.className = "classTop";
 
       var left = document.createElement("div");
       left.className = "left";
       left.innerHTML =
         "<div><strong>" + esc(c.per) + " &nbsp; " + esc(c.name) + " " + esc(c.code) + "</strong></div>" +
-        "<div class='grade'>Current Quarter Grade: A</div>";
+        "<div class='gradeLine'>Current Quarter Grade: A</div>";
 
       var right = document.createElement("div");
-      right.className = "teacher";
-      right.textContent = c.teacher;
+      right.className = "teacherLine";
+      right.textContent = "Teacher: " + c.teacher;
 
       top.appendChild(left);
       top.appendChild(right);
 
       var wrap = document.createElement("div");
-      wrap.className = "table-wrap";
+      wrap.className = "tableWrap";
 
       var table = document.createElement("table");
       table.innerHTML =
-        "<thead><tr>" +
-          "<th>Detail</th>" +
-          "<th>Date Due</th>" +
-          "<th>Assigned</th>" +
-          "<th>Assignment</th>" +
-          "<th class='center'>Pts<br>Possible</th>" +
-          "<th class='center'>Score</th>" +
-          "<th>Scored As</th>" +
-          "<th class='center'>Extra<br>Credit</th>" +
-          "<th class='center'>Not<br>Graded</th>" +
-          "<th>Comments</th>" +
-        "</tr></thead>";
+        "<thead>" +
+          "<tr>" +
+            "<th>Detail</th>" +
+            "<th>Date Due</th>" +
+            "<th>Assigned</th>" +
+            "<th>Assignment</th>" +
+            "<th class='col-center'>Pts<br/>Possible</th>" +
+            "<th class='col-center'>Score</th>" +
+            "<th>Scored As</th>" +
+            "<th class='col-center'>Extra<br/>Credit</th>" +
+            "<th class='col-center'>Not<br/>Graded</th>" +
+            "<th>Comments</th>" +
+          "</tr>" +
+        "</thead>";
 
       var tbody = document.createElement("tbody");
-      for (var j=0;j<a.length;j++){
+      for(var j=0;j<rows.length;j++){
+        var a = rows[j];
         var tr = document.createElement("tr");
         tr.innerHTML =
           "<td class='muted'></td>" +
-          "<td>" + esc(a[j].due) + "</td>" +
-          "<td>" + esc(a[j].assigned) + "</td>" +
-          "<td>" + esc(a[j].title) + "</td>" +
-          "<td class='center'>" + esc(a[j].pts) + "</td>" +
-          "<td class='center'>" + esc(a[j].score) + "</td>" +
+          "<td>" + esc(a.due) + "</td>" +
+          "<td>" + esc(a.assigned) + "</td>" +
+          "<td>" + esc(a.title) + "</td>" +
+          "<td class='col-center'>" + esc(a.pts) + "</td>" +
+          "<td class='col-center'>" + esc(a.score) + "</td>" +
           "<td class='muted'></td>" +
-          "<td class='center muted'></td>" +
-          "<td class='center muted'></td>" +
+          "<td class='col-center muted'></td>" +
+          "<td class='col-center muted'></td>" +
           "<td class='muted'></td>";
         tbody.appendChild(tr);
       }
@@ -466,7 +475,7 @@
   enterBtn.addEventListener("click", function(){
     loginView.classList.add("hidden");
     assignmentsView.classList.remove("hidden");
-    render();
+    renderAssignments();
   });
 
   signOutBtn.addEventListener("click", function(){
