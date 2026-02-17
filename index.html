@@ -1,228 +1,1096 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Student Portal</title>
+  <meta charset="UTF-8" />
+  <!-- Safari + Chrome friendly viewport -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Portal</title>
 
-<style>
-body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-    background: #eef2f5;
-}
+  <style>
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+      background:#eef2f5;
+      color:#1f2a33;
+    }
+    .topbar{
+      background:#2d3e50;
+      color:#fff;
+      padding:15px;
+      text-align:center;
+      font-weight:bold;
+      font-size:18px;
+      cursor:pointer;
+      user-select:none;
+      -webkit-user-select:none;
+      position:sticky;
+      top:0;
+      z-index:5;
+    }
+    .subbar{
+      background:#4f6d8c;
+      color:#fff;
+      padding:12px;
+      text-align:center;
+    }
+    .container{ padding:15px; }
+    .card{
+      background:#fff;
+      border-radius:12px;
+      padding:15px;
+      margin-bottom:12px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.10);
+    }
+    .title{ font-weight:bold; }
+    .teacher{ color:#4f6d8c; margin-top:3px; }
+    .gradeRow{
+      margin-top:8px;
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .grade{
+      font-weight:bold;
+    }
+    .gradeSmall{
+      font-size:12px;
+      opacity:0.75;
+      margin-top:2px;
+    }
+    .assignHeader{
+      margin-top:10px;
+      font-weight:bold;
+      font-size:14px;
+      color:#2d3e50;
+    }
+    .assignment{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-top:6px;
+      font-size:14px;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .assignmentLeft{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .pill{
+      font-size:12px;
+      padding:2px 8px;
+      border-radius:999px;
+      background:#eef2f5;
+      color:#2d3e50;
+      border:1px solid #d7e0ea;
+    }
+    .btnLink{
+      border:none;
+      background:transparent;
+      cursor:pointer;
+      font-weight:bold;
+      padding:4px 6px;
+      border-radius:6px;
+    }
+    .btnLink:hover{ background:#eef2f5; }
+    .danger{ color:#b00020; }
+    .hidden{ display:none; }
 
-.topbar {
-    background: #2d3e50;
-    color: white;
-    padding: 15px;
-    text-align: center;
-    font-weight: bold;
-    font-size: 18px;
-    cursor: pointer;
-}
+    .login{
+      text-align:center;
+      margin-top:90px;
+      padding:0 10px;
+    }
+    .loginBox{
+      max-width:420px;
+      margin:0 auto;
+      background:#fff;
+      border-radius:14px;
+      padding:22px 18px;
+      box-shadow:0 2px 10px rgba(0,0,0,0.10);
+    }
+    .googleWrap{ display:flex; justify-content:center; margin-top:12px; }
+    .smallNote{
+      font-size:12px;
+      opacity:0.75;
+      margin-top:10px;
+      line-height:1.4;
+    }
+    .fallbackBtn{
+      margin-top:10px;
+      padding:10px 14px;
+      border-radius:10px;
+      border:1px solid #cfd8e3;
+      background:#fff;
+      cursor:pointer;
+      font-weight:bold;
+    }
 
-.subbar {
-    background: #4f6d8c;
-    color: white;
-    padding: 12px;
-    text-align: center;
-}
-
-.container {
-    padding: 15px;
-}
-
-.card {
-    background: white;
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-
-.title {
-    font-weight: bold;
-}
-
-.teacher {
-    color: #4f6d8c;
-    margin-top: 3px;
-}
-
-.grade {
-    margin-top: 6px;
-    font-weight: bold;
-}
-
-.assignment {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 5px;
-    font-size: 14px;
-}
-
-.delete-btn {
-    color: red;
-    cursor: pointer;
-}
-
-.hidden {
-    display: none;
-}
-
-.login {
-    text-align: center;
-    margin-top: 100px;
-}
-
-.google-btn {
-    padding: 10px 15px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    background: white;
-    font-weight: bold;
-    cursor: pointer;
-}
-</style>
+    /* Admin modal */
+    .modalOverlay{
+      position:fixed;
+      left:0; top:0; right:0; bottom:0;
+      background:rgba(0,0,0,0.45);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:16px;
+      z-index:999;
+    }
+    .modal{
+      width:100%;
+      max-width:560px;
+      background:#fff;
+      border-radius:14px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.25);
+      overflow:hidden;
+    }
+    .modalHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:14px 16px;
+      background:#2d3e50;
+      color:#fff;
+    }
+    .modalTitle{ font-weight:bold; }
+    .closeBtn{
+      border:none;
+      background:transparent;
+      color:#fff;
+      font-size:22px;
+      cursor:pointer;
+      line-height:1;
+      padding:4px 8px;
+      border-radius:8px;
+    }
+    .closeBtn:hover{ background:rgba(255,255,255,0.12); }
+    .modalBody{ padding:14px 16px 16px; }
+    .tabs{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:12px;
+    }
+    .tabBtn{
+      border:1px solid #cfd8e3;
+      background:#fff;
+      padding:8px 10px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:bold;
+      font-size:13px;
+    }
+    .tabBtn.active{
+      background:#eef2f5;
+      border-color:#b8c7d8;
+    }
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    label{
+      font-size:12px;
+      opacity:0.8;
+      display:block;
+      margin-bottom:6px;
+    }
+    .field{
+      flex:1 1 160px;
+      min-width:160px;
+    }
+    input, select{
+      width:100%;
+      box-sizing:border-box;
+      padding:10px 10px;
+      border:1px solid #cfd8e3;
+      border-radius:10px;
+      font-size:14px;
+      outline:none;
+      background:#fff;
+    }
+    input:focus, select:focus{ border-color:#4f6d8c; }
+    .primaryBtn{
+      border:none;
+      padding:10px 14px;
+      border-radius:10px;
+      background:#4f6d8c;
+      color:#fff;
+      font-weight:bold;
+      cursor:pointer;
+    }
+    .primaryBtn:hover{ filter:brightness(0.95); }
+    .mutedBtn{
+      border:1px solid #cfd8e3;
+      padding:10px 14px;
+      border-radius:10px;
+      background:#fff;
+      font-weight:bold;
+      cursor:pointer;
+    }
+    .mutedBtn:hover{ background:#eef2f5; }
+    .modalFooter{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      margin-top:6px;
+      flex-wrap:wrap;
+    }
+    .errorText{
+      margin-top:10px;
+      color:#b00020;
+      font-weight:bold;
+      font-size:13px;
+    }
+    .okText{
+      margin-top:10px;
+      color:#116b2d;
+      font-weight:bold;
+      font-size:13px;
+    }
+    .divider{
+      height:1px;
+      background:#eef2f5;
+      margin:12px 0;
+    }
+  </style>
 </head>
 
 <body>
+  <div class="topbar" id="adminTrigger">Dearborn Public Schools</div>
+  <div class="subbar" id="subbarTitle">Assignments</div>
 
-<div class="topbar" id="adminTrigger">Dearborn Public Schools</div>
-<div class="subbar">Assignments</div>
+  <div class="container">
+    <!-- Login -->
+    <div id="loginPage" class="login">
+      <div class="loginBox">
+        <h2 style="margin:0 0 6px 0;">Sign In</h2>
+        <div style="opacity:0.8;">Use Google to continue</div>
 
-<div class="container">
+        <!-- Google Identity Services button will render here -->
+        <div class="googleWrap">
+          <div id="g_id_onload"></div>
+          <div class="g_id_signin"
+               data-type="standard"
+               data-size="large"
+               data-theme="outline"
+               data-text="signin_with"
+               data-shape="rectangular"
+               data-logo_alignment="left"></div>
+        </div>
 
-<div id="loginPage" class="login">
-    <h2>Sign In</h2>
-    <button class="google-btn" id="loginBtn">Sign in with Google</button>
-</div>
+        <!-- Fallback for when you haven't set a client_id yet -->
+        <button class="fallbackBtn" id="demoLoginBtn">Continue (Demo)</button>
 
-<div id="dashboard" class="hidden"></div>
+        <div class="smallNote">
+          <b>Important:</b> Google sign-in here is frontend-only (good for demos). For real security, you’d verify the token on a server.
+        </div>
+        <div class="smallNote" id="clientNote"></div>
+      </div>
+    </div>
 
-</div>
+    <!-- Dashboard -->
+    <div id="dashboard" class="hidden"></div>
+  </div>
 
-<script>
-(function(){
+  <!-- Admin Modal -->
+  <div id="adminModalOverlay" class="modalOverlay hidden" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modalHeader">
+        <div class="modalTitle">Admin</div>
+        <button class="closeBtn" id="closeAdminBtn" aria-label="Close">×</button>
+      </div>
+      <div class="modalBody">
+        <div id="adminAuthSection">
+          <div style="font-weight:bold;margin-bottom:8px;">Enter admin password</div>
+          <div class="row">
+            <div class="field" style="flex:1 1 100%;">
+              <label for="adminPass">Password</label>
+              <input id="adminPass" type="password" placeholder="••••••••" autocomplete="current-password" />
+            </div>
+          </div>
+          <div class="modalFooter">
+            <button class="mutedBtn" id="cancelAdminAuth">Cancel</button>
+            <button class="primaryBtn" id="submitAdminAuth">Unlock</button>
+          </div>
+          <div class="smallNote">
+            Demo password is <b>admin123</b>. (Frontend-only, not secure.)
+          </div>
+          <div id="adminAuthMsg" class="errorText hidden"></div>
+        </div>
 
-var classes = [
-    { id:1, name:"Chemistry S2 (623090)", teacher:"Bazzi-Hijazi, R", grade:"A" },
-    { id:2, name:"Arabic 2 S2 (625130)", teacher:"Raishouni, O", grade:"A" },
-    { id:3, name:"PE/Health 9 Boys (629030)", teacher:"Hamade, M", grade:"A" },
-    { id:4, name:"Language Arts 2 (621020)", teacher:"Marwani, H", grade:"A" },
-    { id:5, name:"AP Human Geography (622270)", teacher:"Jedele, S", grade:"A-" },
-    { id:6, name:"Algebra 2 S2 (624026)", teacher:"AlHadrawi, M", grade:"A" }
-];
+        <div id="adminPanelSection" class="hidden">
+          <div class="tabs">
+            <button class="tabBtn active" id="tabAdd">Add / Edit Assignment</button>
+            <button class="tabBtn" id="tabOverride">Override Letter Grade</button>
+            <button class="tabBtn" id="tabTools">Tools</button>
+          </div>
 
-var loginBtn = document.getElementById("loginBtn");
-var dashboard = document.getElementById("dashboard");
-var loginPage = document.getElementById("loginPage");
-var adminTrigger = document.getElementById("adminTrigger");
+          <!-- Add/Edit Assignment -->
+          <div id="panelAdd">
+            <div class="row">
+              <div class="field">
+                <label for="classSelectA">Class</label>
+                <select id="classSelectA"></select>
+              </div>
+              <div class="field">
+                <label for="assignName">Assignment name</label>
+                <input id="assignName" type="text" placeholder="Homework 3" />
+              </div>
+            </div>
 
-loginBtn.addEventListener("click", function(){
-    loginPage.classList.add("hidden");
-    dashboard.classList.remove("hidden");
-    render();
-});
+            <div class="row">
+              <div class="field">
+                <label for="pointsEarned">Points earned</label>
+                <input id="pointsEarned" type="number" min="0" step="0.01" placeholder="18" />
+              </div>
+              <div class="field">
+                <label for="pointsPossible">Points possible</label>
+                <input id="pointsPossible" type="number" min="0.01" step="0.01" placeholder="20" />
+              </div>
+              <div class="field">
+                <label for="weight">Weight (optional)</label>
+                <input id="weight" type="number" min="0.1" step="0.1" placeholder="1" />
+              </div>
+            </div>
 
-adminTrigger.addEventListener("click", function(){
-    openAdmin();
-});
+            <div class="modalFooter">
+              <button class="mutedBtn" id="clearFormBtn">Clear</button>
+              <button class="primaryBtn" id="saveAssignmentBtn">Save Assignment</button>
+            </div>
 
-function render(){
-    dashboard.innerHTML = "";
+            <div id="saveMsg" class="okText hidden"></div>
+            <div id="saveErr" class="errorText hidden"></div>
 
-    for(var i=0;i<classes.length;i++){
+            <div class="divider"></div>
+            <div style="font-weight:bold;margin-bottom:6px;">Tip</div>
+            <div class="smallNote">
+              Grades compute automatically from assignments: weighted average of (earned/possible). Weight defaults to 1.
+            </div>
+          </div>
+
+          <!-- Override Grade -->
+          <div id="panelOverride" class="hidden">
+            <div class="row">
+              <div class="field">
+                <label for="classSelectO">Class</label>
+                <select id="classSelectO"></select>
+              </div>
+              <div class="field">
+                <label for="overrideLetter">Override letter (optional)</label>
+                <input id="overrideLetter" type="text" placeholder="A-" />
+              </div>
+            </div>
+            <div class="modalFooter">
+              <button class="mutedBtn" id="clearOverrideBtn">Clear Override</button>
+              <button class="primaryBtn" id="saveOverrideBtn">Save Override</button>
+            </div>
+            <div class="smallNote">
+              If override is set, it replaces the computed letter grade, but the % is still shown.
+            </div>
+            <div id="overrideMsg" class="okText hidden"></div>
+            <div id="overrideErr" class="errorText hidden"></div>
+          </div>
+
+          <!-- Tools -->
+          <div id="panelTools" class="hidden">
+            <div style="font-weight:bold;margin-bottom:8px;">Tools</div>
+            <div class="smallNote">These actions affect only this browser (localStorage).</div>
+            <div class="modalFooter" style="justify-content:flex-start;">
+              <button class="mutedBtn danger" id="wipeAllBtn">Wipe All Data</button>
+            </div>
+            <div id="toolsMsg" class="okText hidden"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Google Identity Services (GIS) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <script>
+  (function(){
+    // ======= CONFIG =======
+    // Replace this with your real Google OAuth Client ID (Web application).
+    // Example: "1234567890-abcdefg.apps.googleusercontent.com"
+    var GOOGLE_CLIENT_ID = "PASTE_YOUR_CLIENT_ID_HERE";
+
+    // ======= DATA =======
+    var classes = [
+      { id:1, name:"Chemistry S2 (623090)", teacher:"Bazzi-Hijazi, R" },
+      { id:2, name:"Arabic 2 S2 (625130)", teacher:"Raishouni, O" },
+      { id:3, name:"PE/Health 9 Boys (629030)", teacher:"Hamade, M" },
+      { id:4, name:"Language Arts 2 (621020)", teacher:"Marwani, H" },
+      { id:5, name:"AP Human Geography (622270)", teacher:"Jedele, S" },
+      { id:6, name:"Algebra 2 S2 (624026)", teacher:"AlHadrawi, M" }
+    ];
+
+    // ======= ELEMENTS =======
+    var dashboard = document.getElementById("dashboard");
+    var loginPage = document.getElementById("loginPage");
+    var adminTrigger = document.getElementById("adminTrigger");
+    var subbarTitle = document.getElementById("subbarTitle");
+    var demoLoginBtn = document.getElementById("demoLoginBtn");
+    var clientNote = document.getElementById("clientNote");
+
+    // Admin modal elements
+    var adminModalOverlay = document.getElementById("adminModalOverlay");
+    var closeAdminBtn = document.getElementById("closeAdminBtn");
+    var cancelAdminAuth = document.getElementById("cancelAdminAuth");
+    var submitAdminAuth = document.getElementById("submitAdminAuth");
+    var adminPass = document.getElementById("adminPass");
+    var adminAuthSection = document.getElementById("adminAuthSection");
+    var adminPanelSection = document.getElementById("adminPanelSection");
+    var adminAuthMsg = document.getElementById("adminAuthMsg");
+
+    var tabAdd = document.getElementById("tabAdd");
+    var tabOverride = document.getElementById("tabOverride");
+    var tabTools = document.getElementById("tabTools");
+    var panelAdd = document.getElementById("panelAdd");
+    var panelOverride = document.getElementById("panelOverride");
+    var panelTools = document.getElementById("panelTools");
+
+    var classSelectA = document.getElementById("classSelectA");
+    var assignName = document.getElementById("assignName");
+    var pointsEarned = document.getElementById("pointsEarned");
+    var pointsPossible = document.getElementById("pointsPossible");
+    var weight = document.getElementById("weight");
+    var saveAssignmentBtn = document.getElementById("saveAssignmentBtn");
+    var clearFormBtn = document.getElementById("clearFormBtn");
+    var saveMsg = document.getElementById("saveMsg");
+    var saveErr = document.getElementById("saveErr");
+
+    var classSelectO = document.getElementById("classSelectO");
+    var overrideLetter = document.getElementById("overrideLetter");
+    var saveOverrideBtn = document.getElementById("saveOverrideBtn");
+    var clearOverrideBtn = document.getElementById("clearOverrideBtn");
+    var overrideMsg = document.getElementById("overrideMsg");
+    var overrideErr = document.getElementById("overrideErr");
+
+    var wipeAllBtn = document.getElementById("wipeAllBtn");
+    var toolsMsg = document.getElementById("toolsMsg");
+
+    // ======= HELPERS (Safari/Chrome friendly ES5) =======
+    function safeParse(json, fallback){
+      try { return JSON.parse(json); } catch(e){ return fallback; }
+    }
+    function lsGet(key, fallback){
+      var v = localStorage.getItem(key);
+      if(v === null || typeof v === "undefined") return fallback;
+      return v;
+    }
+    function lsSet(key, value){
+      localStorage.setItem(key, value);
+    }
+    function show(el){ el.classList.remove("hidden"); }
+    function hide(el){ el.classList.add("hidden"); }
+
+    function setActiveTab(activeBtn){
+      var btns = [tabAdd, tabOverride, tabTools];
+      var panels = [panelAdd, panelOverride, panelTools];
+      for(var i=0;i<btns.length;i++){
+        btns[i].classList.remove("active");
+        hide(panels[i]);
+      }
+      activeBtn.classList.add("active");
+      if(activeBtn === tabAdd) show(panelAdd);
+      if(activeBtn === tabOverride) show(panelOverride);
+      if(activeBtn === tabTools) show(panelTools);
+      clearMsgs();
+    }
+
+    function clearMsgs(){
+      hide(saveMsg); hide(saveErr);
+      hide(overrideMsg); hide(overrideErr);
+      hide(toolsMsg);
+    }
+
+    function buildClassSelect(selectEl){
+      selectEl.innerHTML = "";
+      for(var i=0;i<classes.length;i++){
+        var opt = document.createElement("option");
+        opt.value = String(classes[i].id);
+        opt.textContent = classes[i].id + " - " + classes[i].name;
+        selectEl.appendChild(opt);
+      }
+    }
+
+    function getAssignments(classId){
+      var key = "assign_" + classId;
+      return safeParse(lsGet(key, "[]"), []);
+    }
+    function setAssignments(classId, arr){
+      var key = "assign_" + classId;
+      lsSet(key, JSON.stringify(arr));
+    }
+
+    function getOverride(classId){
+      return lsGet("override_" + classId, "");
+    }
+    function setOverride(classId, letter){
+      if(letter && letter.replace(/\s+/g,"") !== ""){
+        lsSet("override_" + classId, letter);
+      } else {
+        localStorage.removeItem("override_" + classId);
+      }
+    }
+
+    // Weighted grade: sum(earned/possible * weight) / sum(weight)
+    function computePercent(assignments){
+      var sumWeighted = 0;
+      var sumW = 0;
+      for(var i=0;i<assignments.length;i++){
+        var a = assignments[i];
+        var earned = Number(a.earned);
+        var possible = Number(a.possible);
+        var w = (a.weight === undefined || a.weight === null || a.weight === "") ? 1 : Number(a.weight);
+
+        if(!isFinite(earned) || !isFinite(possible) || !isFinite(w)) continue;
+        if(possible <= 0 || w <= 0) continue;
+
+        sumWeighted += (earned/possible) * w;
+        sumW += w;
+      }
+      if(sumW <= 0) return null;
+      return (sumWeighted / sumW) * 100;
+    }
+
+    function letterFromPercent(p){
+      // Simple common scale. Adjust if you want.
+      if(p === null) return "—";
+      if(p >= 93) return "A";
+      if(p >= 90) return "A-";
+      if(p >= 87) return "B+";
+      if(p >= 83) return "B";
+      if(p >= 80) return "B-";
+      if(p >= 77) return "C+";
+      if(p >= 73) return "C";
+      if(p >= 70) return "C-";
+      if(p >= 67) return "D+";
+      if(p >= 63) return "D";
+      if(p >= 60) return "D-";
+      return "F";
+    }
+
+    function formatPercent(p){
+      if(p === null) return "—";
+      // Safari safe rounding
+      return (Math.round(p * 10) / 10).toFixed(1) + "%";
+    }
+
+    function isLoggedIn(){
+      return lsGet("loggedIn", "") === "1";
+    }
+    function setLoggedIn(userLabel){
+      lsSet("loggedIn", "1");
+      lsSet("userLabel", userLabel || "Student");
+    }
+    function logOut(){
+      localStorage.removeItem("loggedIn");
+      localStorage.removeItem("userLabel");
+    }
+
+    // ======= RENDER =======
+    function render(){
+      dashboard.innerHTML = "";
+
+      var userLabel = lsGet("userLabel", "Student");
+      subbarTitle.textContent = "Assignments — " + userLabel;
+
+      for(var i=0;i<classes.length;i++){
         var c = classes[i];
+        var assignments = getAssignments(c.id);
 
-        var grade = localStorage.getItem("grade"+c.id);
-        if(!grade){ grade = c.grade; }
+        var percent = computePercent(assignments);
+        var computedLetter = letterFromPercent(percent);
 
-        var assignments = localStorage.getItem("assign"+c.id);
-        if(assignments){
-            assignments = JSON.parse(assignments);
-        } else {
-            assignments = [];
-        }
+        var override = getOverride(c.id);
+        var letterToShow = (override && override.replace(/\s+/g,"") !== "") ? override : computedLetter;
 
         var card = document.createElement("div");
         card.className = "card";
 
-        var html = "";
-        html += "<div class='title'>" + c.id + " - " + c.name + "</div>";
-        html += "<div class='teacher'>" + c.teacher + "</div>";
-        html += "<div class='grade'>Current Grade: " + grade + "</div>";
-        html += "<div id='assign" + c.id + "'></div>";
+        var topHtml = "";
+        topHtml += "<div class='title'>" + c.id + " - " + escapeHtml(c.name) + "</div>";
+        topHtml += "<div class='teacher'>" + escapeHtml(c.teacher) + "</div>";
+        topHtml += "<div class='gradeRow'>";
+        topHtml +=   "<div>";
+        topHtml +=     "<div class='grade'>Current Grade: " + escapeHtml(letterToShow) + "</div>";
+        topHtml +=     "<div class='gradeSmall'>Computed: " + escapeHtml(computedLetter) + " • " + escapeHtml(formatPercent(percent)) + "</div>";
+        topHtml +=   "</div>";
+        topHtml +=   "<div class='pill'>" + assignments.length + " assignment(s)</div>";
+        topHtml += "</div>";
+        topHtml += "<div class='assignHeader'>Assignments</div>";
+        topHtml += "<div id='assign_" + c.id + "'></div>";
 
-        card.innerHTML = html;
+        card.innerHTML = topHtml;
         dashboard.appendChild(card);
 
-        for(var j=0;j<assignments.length;j++){
-            createAssignment(c.id, assignments[j].name, assignments[j].score, j);
+        var cont = document.getElementById("assign_" + c.id);
+        if(assignments.length === 0){
+          var empty = document.createElement("div");
+          empty.style.opacity = "0.7";
+          empty.style.marginTop = "6px";
+          empty.textContent = "No assignments yet.";
+          cont.appendChild(empty);
+        } else {
+          for(var j=0;j<assignments.length;j++){
+            addAssignmentRow(cont, c.id, assignments[j], j);
+          }
         }
+      }
     }
-}
 
-function createAssignment(classId, name, score, index){
-    var container = document.getElementById("assign"+classId);
+    function addAssignmentRow(container, classId, a, index){
+      var div = document.createElement("div");
+      div.className = "assignment";
 
-    var div = document.createElement("div");
-    div.className = "assignment";
+      var pct = "";
+      if(isFinite(Number(a.earned)) && isFinite(Number(a.possible)) && Number(a.possible) > 0){
+        var p = (Number(a.earned)/Number(a.possible))*100;
+        pct = (Math.round(p*10)/10).toFixed(1) + "%";
+      } else {
+        pct = "—";
+      }
 
-    div.innerHTML =
-        "<span>" + name + " - " + score + "</span>" +
-        "<span class='delete-btn' data-class='"+classId+"' data-index='"+index+"'>✕</span>";
+      var w = (a.weight === undefined || a.weight === null || a.weight === "") ? 1 : a.weight;
 
-    container.appendChild(div);
-}
+      var left = document.createElement("div");
+      left.className = "assignmentLeft";
 
-document.addEventListener("click", function(e){
-    if(e.target.classList.contains("delete-btn")){
-        var classId = e.target.getAttribute("data-class");
-        var index = e.target.getAttribute("data-index");
+      var nameSpan = document.createElement("span");
+      nameSpan.textContent = a.name + " — " + a.earned + "/" + a.possible;
 
-        var assignments = JSON.parse(localStorage.getItem("assign"+classId)) || [];
-        assignments.splice(index,1);
-        localStorage.setItem("assign"+classId, JSON.stringify(assignments));
+      var pill1 = document.createElement("span");
+      pill1.className = "pill";
+      pill1.textContent = pct;
+
+      var pill2 = document.createElement("span");
+      pill2.className = "pill";
+      pill2.textContent = "w " + w;
+
+      left.appendChild(nameSpan);
+      left.appendChild(pill1);
+      left.appendChild(pill2);
+
+      var right = document.createElement("div");
+
+      var editBtn = document.createElement("button");
+      editBtn.className = "btnLink";
+      editBtn.textContent = "Edit";
+      editBtn.setAttribute("data-action","edit");
+      editBtn.setAttribute("data-class", String(classId));
+      editBtn.setAttribute("data-index", String(index));
+
+      var delBtn = document.createElement("button");
+      delBtn.className = "btnLink danger";
+      delBtn.textContent = "Delete";
+      delBtn.setAttribute("data-action","delete");
+      delBtn.setAttribute("data-class", String(classId));
+      delBtn.setAttribute("data-index", String(index));
+
+      right.appendChild(editBtn);
+      right.appendChild(delBtn);
+
+      div.appendChild(left);
+      div.appendChild(right);
+      container.appendChild(div);
+    }
+
+    function escapeHtml(str){
+      // basic safe output for Safari/Chrome
+      str = String(str);
+      return str
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#39;");
+    }
+
+    // ======= GOOGLE SIGN-IN (Frontend-only) =======
+    // GIS calls window.handleCredentialResponse with a JWT "credential" string.
+    window.handleCredentialResponse = function(response){
+      // NOTE: Frontend-only decode. Not secure. Good for demos.
+      try{
+        var jwt = response.credential;
+        var payload = jwt.split(".")[1];
+        var json = base64UrlDecode(payload);
+        var data = safeParse(json, {});
+        var name = data.name || data.email || "Student";
+        setLoggedIn(name);
+        enterApp();
+      }catch(e){
+        // fallback to demo
+        setLoggedIn("Student");
+        enterApp();
+      }
+    };
+
+    function base64UrlDecode(str){
+      // Safari friendly base64url -> base64
+      str = str.replace(/-/g, "+").replace(/_/g, "/");
+      while(str.length % 4) str += "=";
+      // atob exists in Safari + Chrome
+      var decoded = atob(str);
+      // handle UTF-8
+      var out = "";
+      for(var i=0;i<decoded.length;i++){
+        out += "%" + ("00" + decoded.charCodeAt(i).toString(16)).slice(-2);
+      }
+      return decodeURIComponent(out);
+    }
+
+    function initGoogle(){
+      // If user didn't set client id, show a clear note + keep Demo button available.
+      if(!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.indexOf("PASTE_YOUR_CLIENT_ID_HERE") !== -1){
+        clientNote.innerHTML = "<b>Setup needed:</b> Paste your Google Client ID into <code>GOOGLE_CLIENT_ID</code> in the script.";
+        return;
+      }
+
+      // Configure GIS onload container
+      var onloadDiv = document.getElementById("g_id_onload");
+      onloadDiv.setAttribute("data-client_id", GOOGLE_CLIENT_ID);
+      onloadDiv.setAttribute("data-callback", "handleCredentialResponse");
+      onloadDiv.setAttribute("data-auto_prompt", "false");
+    }
+
+    // ======= LOGIN FLOW =======
+    function enterApp(){
+      hide(loginPage);
+      show(dashboard);
+      render();
+    }
+
+    demoLoginBtn.addEventListener("click", function(){
+      setLoggedIn("Student");
+      enterApp();
+    });
+
+    // ======= ADMIN TRIGGER (require 5 taps OR long-press) =======
+    var tapCount = 0;
+    var tapTimer = null;
+    var pressTimer = null;
+
+    adminTrigger.addEventListener("click", function(){
+      // 5 taps within 1.2s
+      tapCount++;
+      if(tapTimer) clearTimeout(tapTimer);
+      tapTimer = setTimeout(function(){
+        tapCount = 0;
+      }, 1200);
+
+      if(tapCount >= 5){
+        tapCount = 0;
+        openAdmin();
+      }
+    });
+
+    // Long-press (mouse + touch)
+    adminTrigger.addEventListener("mousedown", function(){
+      pressTimer = setTimeout(function(){
+        openAdmin();
+      }, 1200);
+    });
+    adminTrigger.addEventListener("mouseup", function(){
+      if(pressTimer) clearTimeout(pressTimer);
+    });
+    adminTrigger.addEventListener("mouseleave", function(){
+      if(pressTimer) clearTimeout(pressTimer);
+    });
+
+    adminTrigger.addEventListener("touchstart", function(){
+      pressTimer = setTimeout(function(){
+        openAdmin();
+      }, 1200);
+    }, {passive:true});
+    adminTrigger.addEventListener("touchend", function(){
+      if(pressTimer) clearTimeout(pressTimer);
+    });
+
+    // ======= ADMIN MODAL =======
+    function openAdmin(){
+      // reset auth UI
+      adminPass.value = "";
+      hide(adminAuthMsg);
+      show(adminAuthSection);
+      hide(adminPanelSection);
+      setActiveTab(tabAdd);
+      buildClassSelect(classSelectA);
+      buildClassSelect(classSelectO);
+      show(adminModalOverlay);
+      // focus for accessibility
+      setTimeout(function(){ adminPass.focus(); }, 0);
+    }
+
+    function closeAdmin(){
+      hide(adminModalOverlay);
+      clearMsgs();
+    }
+
+    closeAdminBtn.addEventListener("click", closeAdmin);
+    cancelAdminAuth.addEventListener("click", closeAdmin);
+
+    adminModalOverlay.addEventListener("click", function(e){
+      // click outside modal closes
+      if(e.target === adminModalOverlay) closeAdmin();
+    });
+
+    submitAdminAuth.addEventListener("click", function(){
+      var pass = adminPass.value;
+      if(pass !== "admin123"){
+        adminAuthMsg.textContent = "Incorrect password.";
+        show(adminAuthMsg);
+        return;
+      }
+      hide(adminAuthMsg);
+      hide(adminAuthSection);
+      show(adminPanelSection);
+    });
+
+    // tabs
+    tabAdd.addEventListener("click", function(){ setActiveTab(tabAdd); });
+    tabOverride.addEventListener("click", function(){ setActiveTab(tabOverride); });
+    tabTools.addEventListener("click", function(){ setActiveTab(tabTools); });
+
+    // Save assignment
+    saveAssignmentBtn.addEventListener("click", function(){
+      clearMsgs();
+      var classId = Number(classSelectA.value);
+      var name = (assignName.value || "").trim();
+      var earned = Number(pointsEarned.value);
+      var possible = Number(pointsPossible.value);
+      var wVal = (weight.value || "").trim();
+      var w = (wVal === "") ? 1 : Number(wVal);
+
+      if(!name){
+        saveErr.textContent = "Please enter an assignment name.";
+        show(saveErr);
+        return;
+      }
+      if(!isFinite(earned) || earned < 0){
+        saveErr.textContent = "Points earned must be a valid number ≥ 0.";
+        show(saveErr);
+        return;
+      }
+      if(!isFinite(possible) || possible <= 0){
+        saveErr.textContent = "Points possible must be a valid number > 0.";
+        show(saveErr);
+        return;
+      }
+      if(!isFinite(w) || w <= 0){
+        saveErr.textContent = "Weight must be a valid number > 0 (or leave blank).";
+        show(saveErr);
+        return;
+      }
+
+      var arr = getAssignments(classId);
+      arr.push({ name:name, earned:earned, possible:possible, weight:w });
+      setAssignments(classId, arr);
+
+      saveMsg.textContent = "Saved!";
+      show(saveMsg);
+
+      // clear inputs
+      assignName.value = "";
+      pointsEarned.value = "";
+      pointsPossible.value = "";
+      weight.value = "";
+
+      render();
+    });
+
+    clearFormBtn.addEventListener("click", function(){
+      clearMsgs();
+      assignName.value = "";
+      pointsEarned.value = "";
+      pointsPossible.value = "";
+      weight.value = "";
+    });
+
+    // Override save/clear
+    saveOverrideBtn.addEventListener("click", function(){
+      clearMsgs();
+      var classId = Number(classSelectO.value);
+      var letter = (overrideLetter.value || "").trim();
+      if(!letter){
+        overrideErr.textContent = "Enter a letter grade (ex: A-, B+), or use Clear Override.";
+        show(overrideErr);
+        return;
+      }
+      setOverride(classId, letter);
+      overrideMsg.textContent = "Override saved.";
+      show(overrideMsg);
+      render();
+    });
+
+    clearOverrideBtn.addEventListener("click", function(){
+      clearMsgs();
+      var classId = Number(classSelectO.value);
+      setOverride(classId, "");
+      overrideLetter.value = "";
+      overrideMsg.textContent = "Override cleared.";
+      show(overrideMsg);
+      render();
+    });
+
+    // Tools: wipe
+    wipeAllBtn.addEventListener("click", function(){
+      clearMsgs();
+      var ok = confirm("Wipe all local data (assignments + overrides + login) on this browser?");
+      if(!ok) return;
+
+      for(var i=0;i<classes.length;i++){
+        localStorage.removeItem("assign_" + classes[i].id);
+        localStorage.removeItem("override_" + classes[i].id);
+      }
+      logOut();
+      toolsMsg.textContent = "All data wiped.";
+      show(toolsMsg);
+
+      // return to login
+      hide(dashboard);
+      show(loginPage);
+      subbarTitle.textContent = "Assignments";
+    });
+
+    // Assignment edit/delete from dashboard (event delegation)
+    document.addEventListener("click", function(e){
+      var tgt = e.target;
+      if(!tgt || !tgt.getAttribute) return;
+
+      var action = tgt.getAttribute("data-action");
+      if(action !== "delete" && action !== "edit") return;
+
+      var classId = Number(tgt.getAttribute("data-class"));
+      var index = Number(tgt.getAttribute("data-index"));
+      var arr = getAssignments(classId);
+
+      if(index < 0 || index >= arr.length) return;
+
+      if(action === "delete"){
+        var ok = confirm("Delete this assignment?");
+        if(!ok) return;
+        arr.splice(index, 1);
+        setAssignments(classId, arr);
         render();
-    }
-});
+        return;
+      }
 
-function openAdmin(){
-    var pass = prompt("Enter admin password:");
-    if(pass !== "admin123") return;
+      if(action === "edit"){
+        // Open admin modal directly to edit by pre-filling and replacing on save
+        openAdmin();
+        // auto-unlock if you want? (keeping password)
+        // Instead, we pre-fill after unlock, so store temp edit state:
+        lsSet("edit_pending", JSON.stringify({ classId: classId, index: index }));
+        // Small hint:
+        adminAuthMsg.textContent = "After unlocking, your assignment will load for editing.";
+        adminAuthMsg.classList.remove("hidden");
+      }
+    });
 
-    var action = prompt("1 = Change Grade\n2 = Add Assignment");
-    if(!action) return;
+    // After unlock, load pending edit (if exists)
+    submitAdminAuth.addEventListener("click", function(){
+      if(adminPass.value !== "admin123") return;
 
-    var classId = prompt("Enter class number (1-6)");
-    if(!classId) return;
+      var pending = safeParse(lsGet("edit_pending",""), null);
+      if(!pending) return;
 
-    if(action === "1"){
-        var newGrade = prompt("Enter new grade");
-        if(newGrade){
-            localStorage.setItem("grade"+classId, newGrade);
-            render();
+      // switch to Add/Edit tab
+      setActiveTab(tabAdd);
+
+      var classId = pending.classId;
+      var index = pending.index;
+      var arr = getAssignments(classId);
+      if(index < 0 || index >= arr.length){
+        localStorage.removeItem("edit_pending");
+        return;
+      }
+
+      // Prefill
+      classSelectA.value = String(classId);
+      assignName.value = arr[index].name;
+      pointsEarned.value = arr[index].earned;
+      pointsPossible.value = arr[index].possible;
+      weight.value = (arr[index].weight === undefined || arr[index].weight === null) ? "" : arr[index].weight;
+
+      // Change save behavior to "update"
+      saveAssignmentBtn.textContent = "Update Assignment";
+      saveAssignmentBtn.onclick = function(){
+        clearMsgs();
+        var name = (assignName.value || "").trim();
+        var earned = Number(pointsEarned.value);
+        var possible = Number(pointsPossible.value);
+        var wVal = (weight.value || "").trim();
+        var w = (wVal === "") ? 1 : Number(wVal);
+
+        if(!name){
+          saveErr.textContent = "Please enter an assignment name.";
+          show(saveErr);
+          return;
         }
-    }
+        if(!isFinite(earned) || earned < 0){
+          saveErr.textContent = "Points earned must be a valid number ≥ 0.";
+          show(saveErr);
+          return;
+        }
+        if(!isFinite(possible) || possible <= 0){
+          saveErr.textContent = "Points possible must be a valid number > 0.";
+          show(saveErr);
+          return;
+        }
+        if(!isFinite(w) || w <= 0){
+          saveErr.textContent = "Weight must be a valid number > 0 (or leave blank).";
+          show(saveErr);
+          return;
+        }
 
-    if(action === "2"){
-        var name = prompt("Assignment name");
-        if(!name) return;
+        var arr2 = getAssignments(classId);
+        arr2[index] = { name:name, earned:earned, possible:possible, weight:w };
+        setAssignments(classId, arr2);
 
-        var score = prompt("Score");
-        if(!score) return;
+        saveMsg.textContent = "Updated!";
+        show(saveMsg);
 
-        var assignments = JSON.parse(localStorage.getItem("assign"+classId)) || [];
-        assignments.push({name:name, score:score});
-        localStorage.setItem("assign"+classId, JSON.stringify(assignments));
+        // reset edit mode
+        localStorage.removeItem("edit_pending");
+        saveAssignmentBtn.textContent = "Save Assignment";
+        saveAssignmentBtn.onclick = null;
+        // restore normal click handler by reloading page logic quickly:
+        // easiest safe way: close and re-open tab UI state
+        assignName.value = "";
+        pointsEarned.value = "";
+        pointsPossible.value = "";
+        weight.value = "";
         render();
+      };
+
+      localStorage.removeItem("edit_pending");
+    });
+
+    // ======= STARTUP =======
+    function start(){
+      initGoogle();
+
+      if(isLoggedIn()){
+        enterApp();
+      } else {
+        show(loginPage);
+        hide(dashboard);
+      }
     }
-}
 
-})();
-</script>
-
+    start();
+  })();
+  </script>
 </body>
 </html>
+
