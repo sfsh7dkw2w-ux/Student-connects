@@ -39,23 +39,46 @@
   }
   .title{ font-weight:bold; }
   .teacher{ color:#4f6d8c; margin-top:3px; }
+  .overall{
+    margin-top:8px;
+    font-weight:bold;
+  }
+  .overall small{
+    font-weight:normal;
+    opacity:0.75;
+  }
 
   .assignment{
-    margin-top:6px;
-    padding:8px 10px;
+    margin-top:8px;
+    padding:10px;
     background:#f5f7fa;
-    border-radius:8px;
+    border-radius:10px;
     display:flex;
     justify-content:space-between;
-    align-items:center;
+    align-items:flex-start;
     gap:10px;
+  }
+  .assignmentLeft{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .assignmentName{
+    font-weight:bold;
+  }
+  .assignmentMeta{
+    font-size:13px;
+    opacity:0.8;
   }
   .deleteX{
     cursor:pointer;
     color:#c4001a;
     font-weight:bold;
-    padding:4px 8px;
-    border-radius:8px;
+    padding:4px 10px;
+    border-radius:10px;
+    line-height:1.2;
+    user-select:none;
+    -webkit-user-select:none;
   }
   .deleteX:hover{ background:#fdecef; }
 
@@ -93,7 +116,7 @@
   }
   .modal-content{
     width:100%;
-    max-width:440px;
+    max-width:520px;
     background:#fff;
     border-radius:14px;
     box-shadow:0 10px 30px rgba(0,0,0,0.25);
@@ -102,7 +125,13 @@
   .modal-title{
     font-weight:bold;
     font-size:18px;
+    margin-bottom:8px;
+  }
+  .modal-sub{
+    font-size:12px;
+    opacity:0.75;
     margin-bottom:10px;
+    line-height:1.35;
   }
   .modal-content input,
   .modal-content select{
@@ -114,6 +143,15 @@
     border:1px solid #cfd8e3;
     font-size:15px;
     outline:none;
+  }
+  .row{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .row .col{
+    flex:1 1 140px;
+    min-width:140px;
   }
   .modal-row{
     display:flex;
@@ -131,17 +169,12 @@
   }
   .saveBtn{ background:#2d3e50; color:#fff; }
   .closeBtn{ background:#e7ecf2; color:#1f2a33; }
+  .dangerBtn{ background:#c4001a; color:#fff; }
   .errorText{
     margin-top:10px;
     color:#c4001a;
     font-weight:bold;
     font-size:13px;
-  }
-  .smallNote{
-    margin-top:10px;
-    font-size:12px;
-    opacity:0.75;
-    line-height:1.35;
   }
 </style>
 </head>
@@ -151,12 +184,10 @@
   <div class="subbar">Assignments</div>
 
   <div class="container">
-    <!-- Login screen -->
     <div id="login" class="login">
       <button id="loginBtn">Sign In</button>
     </div>
 
-    <!-- Dashboard -->
     <div id="dashboard" class="hidden"></div>
   </div>
 
@@ -164,6 +195,9 @@
   <div id="adminModal" class="modal hidden" hidden style="display:none;">
     <div class="modal-content" id="adminModalBox">
       <div class="modal-title">Admin</div>
+      <div class="modal-sub">
+        Admin mode is required to delete assignments or change overall grades.
+      </div>
 
       <!-- Step 1: Password -->
       <div id="adminStepPass">
@@ -175,16 +209,36 @@
         <div id="adminPassErr" class="errorText hidden">Incorrect password.</div>
       </div>
 
-      <!-- Step 2: Form -->
-      <div id="adminStepForm" class="hidden">
+      <!-- Step 2: Admin tools -->
+      <div id="adminStepTools" class="hidden">
         <select id="classSelect"></select>
+
+        <!-- Add assignment -->
         <input id="assignName" type="text" placeholder="Assignment name (ex: Homework 1)" />
+
+        <div class="row">
+          <div class="col">
+            <input id="earnedInput" type="number" min="0" step="0.01" placeholder="Points earned (ex: 18)" />
+          </div>
+          <div class="col">
+            <input id="possibleInput" type="number" min="0.01" step="0.01" placeholder="Points possible (ex: 20)" />
+          </div>
+        </div>
+
         <div class="modal-row">
-          <button class="saveBtn" id="saveAssign">Save</button>
+          <button class="saveBtn" id="saveAssign">Save Assignment</button>
           <button class="closeBtn" id="adminCloseBtn2">Close</button>
         </div>
-        <div class="smallNote">
-          Delete (✕) is only available while admin is unlocked.
+
+        <!-- Override grade -->
+        <input id="overrideInput" type="text" placeholder="Override overall grade (optional, ex: A-)" />
+        <div class="modal-row">
+          <button class="saveBtn" id="saveOverride">Save Override</button>
+          <button class="closeBtn" id="clearOverride">Clear Override</button>
+        </div>
+
+        <div class="modal-row">
+          <button class="dangerBtn" id="exitAdmin">Exit Admin Mode</button>
         </div>
       </div>
     </div>
@@ -194,7 +248,7 @@
 (function(){
   // ===== CONFIG =====
   var ADMIN_PASSWORD = "20126693";
-  var isAdminUnlocked = false; // delete is only enabled when true
+  var isAdminUnlocked = false; // controls delete/override permissions
 
   var classes = [
     {id:1,name:"Chemistry S2",teacher:"Bazzi-Hijazi, R"},
@@ -215,7 +269,7 @@
   var adminModalBox = document.getElementById("adminModalBox");
 
   var adminStepPass = document.getElementById("adminStepPass");
-  var adminStepForm = document.getElementById("adminStepForm");
+  var adminStepTools = document.getElementById("adminStepTools");
 
   var adminPassInput = document.getElementById("adminPassInput");
   var adminPassErr = document.getElementById("adminPassErr");
@@ -225,9 +279,16 @@
 
   var classSelect = document.getElementById("classSelect");
   var assignName = document.getElementById("assignName");
+  var earnedInput = document.getElementById("earnedInput");
+  var possibleInput = document.getElementById("possibleInput");
   var saveAssign = document.getElementById("saveAssign");
 
-  // Always start with admin hidden (extra safety)
+  var overrideInput = document.getElementById("overrideInput");
+  var saveOverride = document.getElementById("saveOverride");
+  var clearOverride = document.getElementById("clearOverride");
+  var exitAdmin = document.getElementById("exitAdmin");
+
+  // ===== SAFE MODAL HIDE ON LOAD =====
   forceHideAdmin();
 
   function forceHideAdmin(){
@@ -240,12 +301,13 @@
     adminModal.removeAttribute("hidden");
     adminModal.style.display = "flex";
   }
-  function closeAdmin(){
-    // leaving admin mode turns off delete
-    isAdminUnlocked = false;
+  function closeAdminModal(){
     forceHideAdmin();
-    // re-render so X disappears immediately
-    render();
+  }
+  function exitAdminMode(){
+    isAdminUnlocked = false;
+    closeAdminModal();
+    render(); // ensure delete buttons disappear
   }
 
   // ===== LOGIN =====
@@ -255,29 +317,108 @@
     render();
   });
 
-  // ===== RENDER DASHBOARD =====
+  // ===== STORAGE HELPERS =====
+  function getAssignments(classId){
+    return safeParse(localStorage.getItem("assign_" + classId), []);
+  }
+  function setAssignments(classId, arr){
+    localStorage.setItem("assign_" + classId, JSON.stringify(arr));
+  }
+
+  function getOverride(classId){
+    var v = localStorage.getItem("override_" + classId);
+    return v ? String(v) : "";
+  }
+  function setOverride(classId, v){
+    v = String(v || "").trim();
+    if(!v){
+      localStorage.removeItem("override_" + classId);
+    } else {
+      localStorage.setItem("override_" + classId, v);
+    }
+  }
+
+  function safeParse(json, fallback){
+    try { return JSON.parse(json); } catch(e){ return fallback; }
+  }
+
+  // ===== GRADE CALCS =====
+  function computePercent(assignments){
+    var earnedSum = 0;
+    var possibleSum = 0;
+
+    for(var i=0;i<assignments.length;i++){
+      var a = assignments[i];
+      var earned = Number(a.earned);
+      var possible = Number(a.possible);
+
+      if(!isFinite(earned) || !isFinite(possible)) continue;
+      if(possible <= 0) continue;
+
+      earnedSum += earned;
+      possibleSum += possible;
+    }
+
+    if(possibleSum <= 0) return null;
+    return (earnedSum / possibleSum) * 100;
+  }
+
+  function letterFromPercent(p){
+    if(p === null) return "--";
+    if(p >= 93) return "A";
+    if(p >= 90) return "A-";
+    if(p >= 87) return "B+";
+    if(p >= 83) return "B";
+    if(p >= 80) return "B-";
+    if(p >= 77) return "C+";
+    if(p >= 73) return "C";
+    if(p >= 70) return "C-";
+    if(p >= 67) return "D+";
+    if(p >= 63) return "D";
+    if(p >= 60) return "D-";
+    return "F";
+  }
+
+  function formatPercent(p){
+    if(p === null) return "--";
+    return (Math.round(p * 10) / 10).toFixed(1) + "%";
+  }
+
+  // ===== RENDER =====
   function render(){
     dashboard.innerHTML = "";
 
     for(var i=0;i<classes.length;i++){
       var c = classes[i];
-      var assignments = JSON.parse(localStorage.getItem("assign_"+c.id) || "[]");
+      var assignments = getAssignments(c.id);
+
+      var percent = computePercent(assignments);
+      var computedLetter = letterFromPercent(percent);
+
+      var override = getOverride(c.id);
+      var overallLetter = override ? override : computedLetter;
 
       var card = document.createElement("div");
       card.className = "card";
+
+      var overallLine =
+        "<div class='overall'>Overall: " + escapeHtml(overallLetter) +
+        " <small>(" + escapeHtml(formatPercent(percent)) + (override ? " • overridden" : "") + ")</small></div>";
+
       card.innerHTML =
         "<div class='title'>" + escapeHtml(c.name) + "</div>" +
         "<div class='teacher'>" + escapeHtml(c.teacher) + "</div>" +
-        "<div id='assign_"+c.id+"'></div>";
+        overallLine +
+        "<div id='assign_" + c.id + "'></div>";
 
       dashboard.appendChild(card);
 
-      var container = document.getElementById("assign_"+c.id);
+      var container = document.getElementById("assign_" + c.id);
 
       if(assignments.length === 0){
         var empty = document.createElement("div");
         empty.style.opacity = "0.7";
-        empty.style.marginTop = "8px";
+        empty.style.marginTop = "10px";
         empty.textContent = "No assignments yet.";
         container.appendChild(empty);
       } else {
@@ -288,22 +429,42 @@
     }
   }
 
-  function addAssignmentRow(container, classId, name, index){
+  function addAssignmentRow(container, classId, a, index){
     var div = document.createElement("div");
     div.className = "assignment";
 
-    var left = document.createElement("span");
-    left.textContent = name;
+    var left = document.createElement("div");
+    left.className = "assignmentLeft";
+
+    var name = document.createElement("div");
+    name.className = "assignmentName";
+    name.textContent = a.name;
+
+    var meta = document.createElement("div");
+    meta.className = "assignmentMeta";
+
+    var earned = Number(a.earned);
+    var possible = Number(a.possible);
+    var pctText = "--";
+    if(isFinite(earned) && isFinite(possible) && possible > 0){
+      var pct = (earned/possible) * 100;
+      pctText = (Math.round(pct*10)/10).toFixed(1) + "%";
+    }
+    meta.textContent = String(a.earned) + " / " + String(a.possible) + "  •  " + pctText;
+
+    left.appendChild(name);
+    left.appendChild(meta);
     div.appendChild(left);
 
-    // Only show delete button in admin mode
+    // ONLY show delete button if admin is unlocked
     if(isAdminUnlocked){
-      var right = document.createElement("span");
-      right.className = "deleteX";
-      right.textContent = "✕";
-      right.setAttribute("data-class", String(classId));
-      right.setAttribute("data-index", String(index));
-      div.appendChild(right);
+      var del = document.createElement("span");
+      del.className = "deleteX";
+      del.textContent = "✕";
+      del.setAttribute("data-action", "delete");
+      del.setAttribute("data-class", String(classId));
+      del.setAttribute("data-index", String(index));
+      div.appendChild(del);
     }
 
     container.appendChild(div);
@@ -315,26 +476,31 @@
             .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
   }
 
-  // ===== DELETE (only if admin unlocked) =====
+  // ===== DELETE (ADMIN ONLY, STRICT) =====
   document.addEventListener("click", function(e){
     var t = e.target;
     if(!t || !t.getAttribute) return;
 
-    // Only allow delete in admin mode
+    // Only delete if:
+    // 1) admin unlocked
+    // 2) clicked element is deleteX with data-action="delete"
     if(!isAdminUnlocked) return;
+    if(!t.classList || !t.classList.contains("deleteX")) return;
+    if(t.getAttribute("data-action") !== "delete") return;
 
     var classId = t.getAttribute("data-class");
-    var index = t.getAttribute("data-index");
-    if(!classId) return;
+    var index = Number(t.getAttribute("data-index"));
+    if(!classId || !isFinite(index)) return;
 
-    var arr = JSON.parse(localStorage.getItem("assign_"+classId) || "[]");
-    arr.splice(Number(index), 1);
-    localStorage.setItem("assign_"+classId, JSON.stringify(arr));
+    var arr = getAssignments(classId);
+    if(index < 0 || index >= arr.length) return;
+
+    arr.splice(index, 1);
+    setAssignments(classId, arr);
     render();
   });
 
-  // ===== ADMIN: only opens after 5 taps on header =====
-  // iOS Safari: touchend can create an extra "ghost click" — we prevent double counting.
+  // ===== ADMIN TRIGGER: 5 TAPS ON HEADER (iOS SAFE) =====
   var tapCount = 0;
   var tapTimer = null;
   var lastTouchTime = 0;
@@ -362,43 +528,51 @@
   });
 
   function openAdmin(){
-    // reset modal steps
+    // reset modal state
     adminPassInput.value = "";
-    assignName.value = "";
     adminPassErr.classList.add("hidden");
 
     adminStepPass.classList.remove("hidden");
-    adminStepForm.classList.add("hidden");
+    adminStepTools.classList.add("hidden");
 
+    // clear fields
+    assignName.value = "";
+    earnedInput.value = "";
+    possibleInput.value = "";
+    overrideInput.value = "";
+
+    // show modal
     showAdmin();
     setTimeout(function(){ adminPassInput.focus(); }, 50);
   }
 
-  // ===== Admin close behavior =====
-  adminCloseBtn1.addEventListener("click", closeAdmin);
-  adminCloseBtn2.addEventListener("click", closeAdmin);
+  // close behaviors
+  adminCloseBtn1.addEventListener("click", closeAdminModal);
+  adminCloseBtn2.addEventListener("click", closeAdminModal);
 
   adminModal.addEventListener("click", function(e){
-    if(e.target === adminModal) closeAdmin();
+    if(e.target === adminModal) closeAdminModal();
   });
   adminModalBox.addEventListener("click", function(e){
     e.stopPropagation();
   });
 
-  // ===== Admin unlock (password) =====
+  exitAdmin.addEventListener("click", function(){
+    exitAdminMode();
+  });
+
+  // unlock admin
   adminUnlockBtn.addEventListener("click", function(){
     var pass = (adminPassInput.value || "").replace(/\s+/g,"");
     if(pass !== ADMIN_PASSWORD){
       adminPassErr.classList.remove("hidden");
       return;
     }
-
-    // Unlock admin mode (enables delete and shows X)
-    isAdminUnlocked = true;
-
     adminPassErr.classList.add("hidden");
 
-    // Populate class list
+    isAdminUnlocked = true; // enable delete + override
+
+    // populate classes dropdown
     classSelect.innerHTML = "";
     for(var i=0;i<classes.length;i++){
       var opt = document.createElement("option");
@@ -407,30 +581,70 @@
       classSelect.appendChild(opt);
     }
 
-    adminStepPass.classList.add("hidden");
-    adminStepForm.classList.remove("hidden");
+    // load current override for selected class
+    overrideInput.value = getOverride(classSelect.value);
 
-    // re-render so X buttons appear immediately
+    // show tools
+    adminStepPass.classList.add("hidden");
+    adminStepTools.classList.remove("hidden");
+
+    // re-render so delete buttons appear immediately
     render();
 
     setTimeout(function(){ assignName.focus(); }, 50);
   });
 
-  // ===== Save assignment =====
+  // update override input when class changes
+  classSelect.addEventListener("change", function(){
+    overrideInput.value = getOverride(classSelect.value);
+  });
+
+  // save assignment (ADMIN ONLY because modal only opens after admin unlock)
   saveAssign.addEventListener("click", function(){
+    if(!isAdminUnlocked) return;
+
     var classId = classSelect.value;
     var name = (assignName.value || "").trim();
-    if(!name) return;
+    var earned = Number(earnedInput.value);
+    var possible = Number(possibleInput.value);
 
-    var arr = JSON.parse(localStorage.getItem("assign_"+classId) || "[]");
-    arr.push(name);
-    localStorage.setItem("assign_"+classId, JSON.stringify(arr));
+    if(!name){ alert("Enter an assignment name."); return; }
+    if(!isFinite(earned) || earned < 0){ alert("Points earned must be a valid number ≥ 0."); return; }
+    if(!isFinite(possible) || possible <= 0){ alert("Points possible must be a valid number > 0."); return; }
+
+    var arr = getAssignments(classId);
+    arr.push({ name:name, earned:earned, possible:possible });
+    setAssignments(classId, arr);
 
     assignName.value = "";
+    earnedInput.value = "";
+    possibleInput.value = "";
 
-    // Keep admin unlocked while modal is open, but close modal after save
-    // (Close resets admin to locked, per your preference)
-    closeAdmin();
+    render();
+  });
+
+  // save override (ADMIN ONLY)
+  saveOverride.addEventListener("click", function(){
+    if(!isAdminUnlocked) return;
+
+    var classId = classSelect.value;
+    var v = (overrideInput.value || "").trim();
+
+    if(!v){
+      alert("Type a letter grade (ex: A-, B+), or use Clear Override.");
+      return;
+    }
+
+    setOverride(classId, v);
+    render();
+  });
+
+  clearOverride.addEventListener("click", function(){
+    if(!isAdminUnlocked) return;
+
+    var classId = classSelect.value;
+    setOverride(classId, "");
+    overrideInput.value = "";
     render();
   });
 
