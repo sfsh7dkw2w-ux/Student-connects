@@ -151,7 +151,7 @@
   <div class="subbar">Assignments</div>
 
   <div class="container">
-    <!-- Login screen (as before) -->
+    <!-- Login screen -->
     <div id="login" class="login">
       <button id="loginBtn">Sign In</button>
     </div>
@@ -160,7 +160,7 @@
     <div id="dashboard" class="hidden"></div>
   </div>
 
-  <!-- Admin Modal (HIDDEN ON LOAD) -->
+  <!-- Admin Modal (hidden on load) -->
   <div id="adminModal" class="modal hidden" hidden style="display:none;">
     <div class="modal-content" id="adminModalBox">
       <div class="modal-title">Admin</div>
@@ -175,7 +175,7 @@
         <div id="adminPassErr" class="errorText hidden">Incorrect password.</div>
       </div>
 
-      <!-- Step 2: Form (shows classes) -->
+      <!-- Step 2: Form -->
       <div id="adminStepForm" class="hidden">
         <select id="classSelect"></select>
         <input id="assignName" type="text" placeholder="Assignment name (ex: Homework 1)" />
@@ -183,7 +183,9 @@
           <button class="saveBtn" id="saveAssign">Save</button>
           <button class="closeBtn" id="adminCloseBtn2">Close</button>
         </div>
-        <div class="smallNote">Tap the red ✕ next to an assignment to delete it.</div>
+        <div class="smallNote">
+          Delete (✕) is only available while admin is unlocked.
+        </div>
       </div>
     </div>
   </div>
@@ -192,6 +194,7 @@
 (function(){
   // ===== CONFIG =====
   var ADMIN_PASSWORD = "20126693";
+  var isAdminUnlocked = false; // delete is only enabled when true
 
   var classes = [
     {id:1,name:"Chemistry S2",teacher:"Bazzi-Hijazi, R"},
@@ -238,10 +241,14 @@
     adminModal.style.display = "flex";
   }
   function closeAdmin(){
+    // leaving admin mode turns off delete
+    isAdminUnlocked = false;
     forceHideAdmin();
+    // re-render so X disappears immediately
+    render();
   }
 
-  // ===== LOGIN (as before) =====
+  // ===== LOGIN =====
   loginBtn.addEventListener("click", function(){
     login.classList.add("hidden");
     dashboard.classList.remove("hidden");
@@ -287,15 +294,18 @@
 
     var left = document.createElement("span");
     left.textContent = name;
-
-    var right = document.createElement("span");
-    right.className = "deleteX";
-    right.textContent = "✕";
-    right.setAttribute("data-class", String(classId));
-    right.setAttribute("data-index", String(index));
-
     div.appendChild(left);
-    div.appendChild(right);
+
+    // Only show delete button in admin mode
+    if(isAdminUnlocked){
+      var right = document.createElement("span");
+      right.className = "deleteX";
+      right.textContent = "✕";
+      right.setAttribute("data-class", String(classId));
+      right.setAttribute("data-index", String(index));
+      div.appendChild(right);
+    }
+
     container.appendChild(div);
   }
 
@@ -305,10 +315,13 @@
             .replace(/"/g,"&quot;").replace(/'/g,"&#39;");
   }
 
-  // ===== DELETE ASSIGNMENT =====
+  // ===== DELETE (only if admin unlocked) =====
   document.addEventListener("click", function(e){
     var t = e.target;
     if(!t || !t.getAttribute) return;
+
+    // Only allow delete in admin mode
+    if(!isAdminUnlocked) return;
 
     var classId = t.getAttribute("data-class");
     var index = t.getAttribute("data-index");
@@ -344,8 +357,7 @@
   }, {passive:false});
 
   header.addEventListener("click", function(){
-    // ignore click that follows a touch (prevents double count)
-    if(Date.now() - lastTouchTime < 600) return;
+    if(Date.now() - lastTouchTime < 600) return; // ignore ghost click
     registerTap();
   });
 
@@ -380,9 +392,13 @@
       adminPassErr.classList.remove("hidden");
       return;
     }
+
+    // Unlock admin mode (enables delete and shows X)
+    isAdminUnlocked = true;
+
     adminPassErr.classList.add("hidden");
 
-    // Populate class list (shows classes in admin panel)
+    // Populate class list
     classSelect.innerHTML = "";
     for(var i=0;i<classes.length;i++){
       var opt = document.createElement("option");
@@ -393,6 +409,10 @@
 
     adminStepPass.classList.add("hidden");
     adminStepForm.classList.remove("hidden");
+
+    // re-render so X buttons appear immediately
+    render();
+
     setTimeout(function(){ assignName.focus(); }, 50);
   });
 
@@ -407,6 +427,9 @@
     localStorage.setItem("assign_"+classId, JSON.stringify(arr));
 
     assignName.value = "";
+
+    // Keep admin unlocked while modal is open, but close modal after save
+    // (Close resets admin to locked, per your preference)
     closeAdmin();
     render();
   });
