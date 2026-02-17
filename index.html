@@ -19,6 +19,7 @@ body {
     text-align: center;
     font-weight: bold;
     font-size: 18px;
+    cursor: pointer;
 }
 
 /* Assignments bar */
@@ -42,7 +43,6 @@ body {
     padding: 15px;
     margin-bottom: 12px;
     box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-    position: relative;
 }
 
 .arrow {
@@ -64,24 +64,6 @@ body {
 .grade {
     margin-top: 6px;
     font-weight: bold;
-}
-
-.edit-btn, .add-btn {
-    margin-top: 8px;
-    padding: 6px 10px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.edit-btn {
-    background: #4f6d8c;
-    color: white;
-}
-
-.add-btn {
-    background: green;
-    color: white;
 }
 
 .hidden {
@@ -106,7 +88,7 @@ body {
 
 <body>
 
-<div class="topbar">Dearborn Public Schools</div>
+<div class="topbar" onclick="adminPanel()">Dearborn Public Schools</div>
 <div class="subbar">Assignments</div>
 
 <div class="container">
@@ -120,36 +102,52 @@ body {
 <!-- DASHBOARD -->
 <div id="dashboard" class="hidden">
 
+    <!-- 1 -->
     <div class="card">
-        <div class="title">
-            <span class="arrow">▶</span>
-            1 - Chemistry S2 (623090)
-        </div>
+        <div class="title"><span class="arrow">▶</span>1 - Chemistry S2 (623090)</div>
         <div class="teacher">Bazzi-Hijazi, R</div>
-        <div class="grade" id="chemGrade">
-            Current Quarter 3 HS Grade: A
-        </div>
-
-        <div id="chemAssignments"></div>
-
-        <button class="edit-btn" onclick="changeGrade('chemGrade')">Change Grade</button>
-        <button class="add-btn" onclick="addAssignment('chemAssignments')">Add Assignment</button>
+        <div class="grade" id="grade1">Current Quarter 3 HS Grade: A</div>
+        <div id="assign1"></div>
     </div>
 
+    <!-- 2 -->
     <div class="card">
-        <div class="title">
-            <span class="arrow">▶</span>
-            5 - AP Human Geography (622270)
-        </div>
+        <div class="title"><span class="arrow">▶</span>2 - Arabic 2 S2 (625130)</div>
+        <div class="teacher">Raishouni, O</div>
+        <div class="grade" id="grade2">Current Quarter 3 HS Grade: A</div>
+        <div id="assign2"></div>
+    </div>
+
+    <!-- 3 -->
+    <div class="card">
+        <div class="title"><span class="arrow">▶</span>3 - PE/Health 9 Boys (629030)</div>
+        <div class="teacher">Hamade, M</div>
+        <div class="grade" id="grade3">Current Quarter 3 HS Grade: A</div>
+        <div id="assign3"></div>
+    </div>
+
+    <!-- 4 -->
+    <div class="card">
+        <div class="title"><span class="arrow">▶</span>4 - Language Arts 2 (621020)</div>
+        <div class="teacher">Marwani, H</div>
+        <div class="grade" id="grade4">Current Quarter 3 HS Grade: A</div>
+        <div id="assign4"></div>
+    </div>
+
+    <!-- 5 -->
+    <div class="card">
+        <div class="title"><span class="arrow">▶</span>5 - AP Human Geography (622270)</div>
         <div class="teacher">Jedele, S</div>
-        <div class="grade" id="geoGrade">
-            Current Quarter 3 HS Grade: A-
-        </div>
+        <div class="grade" id="grade5">Current Quarter 3 HS Grade: A-</div>
+        <div id="assign5"></div>
+    </div>
 
-        <div id="geoAssignments"></div>
-
-        <button class="edit-btn" onclick="changeGrade('geoGrade')">Change Grade</button>
-        <button class="add-btn" onclick="addAssignment('geoAssignments')">Add Assignment</button>
+    <!-- 6 -->
+    <div class="card">
+        <div class="title"><span class="arrow">▶</span>6 - Algebra 2 S2 (624026)</div>
+        <div class="teacher">AlHadrawi, M</div>
+        <div class="grade" id="grade6">Current Semester 2 HS Grade: A</div>
+        <div id="assign6"></div>
     </div>
 
 </div>
@@ -157,28 +155,51 @@ body {
 </div>
 
 <script>
+
+let adminUnlocked = false;
+
 function login() {
     document.getElementById("loginPage").classList.add("hidden");
     document.getElementById("dashboard").classList.remove("hidden");
 }
 
-function changeGrade(id) {
-    let newGrade = prompt("Enter new grade:");
-    if(newGrade){
-        document.getElementById(id).innerText =
-        "Current Quarter 3 HS Grade: " + newGrade;
+function adminPanel() {
+
+    if(!adminUnlocked){
+        let pass = prompt("Enter admin password:");
+        if(pass === "admin123"){
+            adminUnlocked = true;
+            alert("Admin Mode Enabled");
+        } else {
+            return;
+        }
+    }
+
+    let classNumber = prompt("Enter class number (1-6):");
+    if(!classNumber) return;
+
+    let action = prompt("Type 1 to Change Grade\nType 2 to Add Assignment");
+
+    if(action == "1"){
+        let newGrade = prompt("Enter new grade:");
+        if(newGrade){
+            document.getElementById("grade" + classNumber)
+                .innerText = "Current Quarter 3 HS Grade: " + newGrade;
+        }
+    }
+
+    if(action == "2"){
+        let name = prompt("Assignment name:");
+        let score = prompt("Score:");
+        if(name && score){
+            let p = document.createElement("p");
+            p.innerText = name + " - " + score;
+            document.getElementById("assign" + classNumber)
+                .appendChild(p);
+        }
     }
 }
 
-function addAssignment(sectionId) {
-    let name = prompt("Assignment name:");
-    let score = prompt("Score:");
-    if(name && score){
-        let p = document.createElement("p");
-        p.innerText = name + " - " + score;
-        document.getElementById(sectionId).appendChild(p);
-    }
-}
 </script>
 
 </body>
