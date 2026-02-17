@@ -1,3 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Portal</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+    background: #eef2f5;
+}
+
+.topbar {
+    background: #2d3e50;
+    color: white;
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.subbar {
+    background: #4f6d8c;
+    color: white;
+    padding: 12px;
+    text-align: center;
+    font-size: 16px;
+}
+
+.container {
+    padding: 15px;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 12px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+}
+
+.title {
+    font-weight: bold;
+}
+
+.teacher {
+    color: #4f6d8c;
+    margin-top: 3px;
+}
+
+.grade {
+    margin-top: 6px;
+    font-weight: bold;
+}
+
+.assignment {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 14px;
+}
+
+.delete-btn {
+    color: red;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.hidden {
+    display: none;
+}
+
+.login {
+    text-align: center;
+    margin-top: 120px;
+}
+
+.google-btn {
+    padding: 10px 15px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background: white;
+    font-weight: bold;
+    cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="topbar" id="topbar">Dearborn Public Schools</div>
+<div class="subbar">Assignments</div>
+
+<div class="container">
+
+<div id="loginPage" class="login">
+    <h2>Sign In</h2>
+    <button class="google-btn" onclick="login()">Sign in with Google</button>
+</div>
+
+<div id="dashboard" class="hidden"></div>
+
+</div>
+
 <script>
 
 const classes = [
@@ -12,7 +118,7 @@ const classes = [
 let adminUnlocked = false;
 
 document.addEventListener("DOMContentLoaded", function() {
-    document.querySelector(".topbar").addEventListener("click", openAdmin);
+    document.getElementById("topbar").addEventListener("click", openAdmin);
 });
 
 function login(){
@@ -34,7 +140,7 @@ function renderClasses(){
         card.className = "card";
 
         card.innerHTML = `
-            <div class="title"><span class="arrow">▶</span>${c.id} - ${c.name}</div>
+            <div class="title">${c.id} - ${c.name}</div>
             <div class="teacher">${c.teacher}</div>
             <div class="grade">Current Grade: ${savedGrade}</div>
             <div id="assign${c.id}"></div>
@@ -43,50 +149,29 @@ function renderClasses(){
         dash.appendChild(card);
 
         savedAssignments.forEach((a,index)=>{
-            createAssignmentElement(c.id,a.name,a.score,index);
+            let div = document.createElement("div");
+            div.className = "assignment";
+            div.innerHTML = `
+                <span>${a.name} - ${a.score}</span>
+                <span class="delete-btn" onclick="removeAssignment(${c.id},${index})">✕</span>
+            `;
+            document.getElementById("assign"+c.id).appendChild(div);
         });
     });
 }
 
-function createAssignmentElement(classId,name,score,index){
-    let div = document.createElement("div");
-    div.className = "assignment";
-    div.innerHTML = `
-        <span>${name} - ${score}</span>
-        <span class="delete-btn" onclick="removeAssignment(${classId},${index})">✕</span>
-    `;
-    document.getElementById("assign"+classId).appendChild(div);
-}
-
 function openAdmin(){
 
-    if(!adminUnlocked){
-        let pass = prompt("Enter admin password:");
-        if(pass !== "admin123") return;
-        adminUnlocked = true;
-        alert("Admin Mode Enabled");
-    }
+    let pass = prompt("Enter admin password:");
+    if(pass !== "admin123") return;
 
-    showAdminMenu();
-}
-
-function showAdminMenu(){
-
-    let input = prompt(
-`ADMIN MENU
-
-Type:
-1 - Change Grade
-2 - Add Assignment
-3 - Exit`
-    );
-
-    if(!input || input === "3") return;
+    let action = prompt("1 = Change Grade\n2 = Add Assignment");
+    if(!action) return;
 
     let classId = prompt("Enter class number (1-6):");
     if(!classId) return;
 
-    if(input === "1"){
+    if(action === "1"){
         let newGrade = prompt("Enter new grade:");
         if(newGrade){
             localStorage.setItem("grade"+classId,newGrade);
@@ -94,7 +179,7 @@ Type:
         }
     }
 
-    if(input === "2"){
+    if(action === "2"){
         let name = prompt("Assignment name:");
         if(!name) return;
 
@@ -106,8 +191,6 @@ Type:
         localStorage.setItem("assign"+classId,JSON.stringify(assignments));
         renderClasses();
     }
-
-    setTimeout(showAdminMenu, 200); 
 }
 
 function removeAssignment(classId,index){
@@ -118,3 +201,6 @@ function removeAssignment(classId,index){
 }
 
 </script>
+
+</body>
+</html>
