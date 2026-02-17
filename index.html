@@ -1,125 +1,3 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Student Portal</title>
-
-<style>
-body {
-    margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
-    background: #eef2f5;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    user-select: none;
-}
-
-/* Top Header */
-.topbar {
-    background: #2d3e50;
-    color: white;
-    padding: 15px;
-    text-align: center;
-    font-weight: bold;
-    font-size: 18px;
-    cursor: pointer;
-}
-
-/* Assignments bar */
-.subbar {
-    background: #4f6d8c;
-    color: white;
-    padding: 12px;
-    text-align: center;
-    font-size: 16px;
-}
-
-/* Container */
-.container {
-    padding: 15px;
-}
-
-/* Card */
-.card {
-    background: white;
-    border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 12px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-}
-
-.arrow {
-    color: #ff4d6d;
-    font-size: 18px;
-    margin-right: 6px;
-}
-
-.title {
-    font-weight: bold;
-    font-size: 16px;
-}
-
-.teacher {
-    color: #4f6d8c;
-    margin-top: 3px;
-}
-
-.grade {
-    margin-top: 6px;
-    font-weight: bold;
-}
-
-.assignment {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 6px;
-    font-size: 14px;
-}
-
-.delete-btn {
-    color: red;
-    cursor: pointer;
-    font-weight: bold;
-}
-
-.hidden {
-    display: none;
-}
-
-.login {
-    text-align: center;
-    margin-top: 120px;
-}
-
-.google-btn {
-    padding: 10px 15px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    background: white;
-    font-weight: bold;
-    cursor: pointer;
-}
-</style>
-</head>
-
-<body>
-
-<div class="topbar" onclick="adminPanel()">Dearborn Public Schools</div>
-<div class="subbar">Assignments</div>
-
-<div class="container">
-
-<div id="loginPage" class="login">
-    <h2>Sign In</h2>
-    <button class="google-btn" onclick="login()">Sign in with Google</button>
-</div>
-
-<div id="dashboard" class="hidden">
-
-</div>
-
-</div>
-
 <script>
 
 const classes = [
@@ -132,6 +10,15 @@ const classes = [
 ];
 
 let adminUnlocked = false;
+
+document.addEventListener("DOMContentLoaded", function() {
+
+    // SAFARI MOBILE SAFE TAP
+    document.querySelector(".topbar").addEventListener("click", function(){
+        setTimeout(adminPanel, 100);
+    });
+
+});
 
 function login(){
     document.getElementById("loginPage").classList.add("hidden");
@@ -154,15 +41,11 @@ function renderClasses(){
         card.innerHTML = `
             <div class="title"><span class="arrow">▶</span>${c.id} - ${c.name}</div>
             <div class="teacher">${c.teacher}</div>
-            <div class="grade" id="grade${c.id}">
-                Current Grade: ${savedGrade}
-            </div>
+            <div class="grade">Current Grade: ${savedGrade}</div>
             <div id="assign${c.id}"></div>
         `;
 
         dash.appendChild(card);
-
-        let assignDiv = document.getElementById("assign"+c.id);
 
         savedAssignments.forEach((a,index)=>{
             createAssignmentElement(c.id,a.name,a.score,index);
@@ -224,6 +107,3 @@ function removeAssignment(classId,index){
 }
 
 </script>
-
-</body>
-</html>
