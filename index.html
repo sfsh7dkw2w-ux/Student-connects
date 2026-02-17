@@ -38,7 +38,6 @@ body{
 }
 .title{ font-weight:bold; }
 .teacher{ color:#4f6d8c; margin-top:3px; }
-.grade{ margin-top:8px; font-weight:bold; }
 
 .assignment{
   margin-top:6px;
@@ -216,15 +215,22 @@ header.addEventListener("click",function(){
   tapCount++;
   clearTimeout(timer);
   timer=setTimeout(function(){tapCount=0;},1000);
+
   if(tapCount===5){
     tapCount=0;
     unlockAdmin();
   }
 });
 
+/* PASSWORD FIX INCLUDED */
 function unlockAdmin(){
   var pass=prompt("Admin password:");
-  if(pass!==ADMIN_PASSWORD) return;
+  pass = (pass || "").replace(/\s+/g,""); // removes spaces/newlines
+
+  if(pass!==ADMIN_PASSWORD){
+    alert("Incorrect password");
+    return;
+  }
   openModal();
 }
 
@@ -263,4 +269,3 @@ document.getElementById("saveAssign").addEventListener("click",function(){
 
 </body>
 </html>
-
