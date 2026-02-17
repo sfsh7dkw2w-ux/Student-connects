@@ -55,9 +55,7 @@ body{
   color:white;
   cursor:pointer;
 }
-.login button:hover{
-  opacity:0.9;
-}
+.login button:hover{ opacity:0.9; }
 
 .hidden{ display:none; }
 </style>
@@ -66,7 +64,7 @@ body{
 <body>
 
 <div class="topbar" id="header">Dearborn Public Schools</div>
-<div class="subbar" id="subbar">Assignments</div>
+<div class="subbar">Assignments</div>
 
 <div class="container">
 
@@ -81,9 +79,8 @@ body{
 <script>
 (function(){
 
-/* ================= CONFIG ================= */
-
 var ADMIN_PASSWORD = "secureAdmin2026"; // change this
+
 var classes = [
  {id:1,name:"Chemistry S2",teacher:"Bazzi-Hijazi, R"},
  {id:2,name:"Arabic 2 S2",teacher:"Raishouni, O"},
@@ -93,14 +90,12 @@ var classes = [
  {id:6,name:"Algebra 2 S2",teacher:"AlHadrawi, M"}
 ];
 
-/* ================= ELEMENTS ================= */
-
 var login = document.getElementById("login");
 var loginBtn = document.getElementById("loginBtn");
 var dashboard = document.getElementById("dashboard");
 var header = document.getElementById("header");
 
-/* ================= LOGIN ================= */
+/* LOGIN */
 
 loginBtn.addEventListener("click", function(){
   login.classList.add("hidden");
@@ -108,7 +103,7 @@ loginBtn.addEventListener("click", function(){
   render();
 });
 
-/* ================= RENDER ================= */
+/* RENDER */
 
 function render(){
   dashboard.innerHTML = "";
@@ -133,7 +128,7 @@ function render(){
   }
 }
 
-/* ================= GRADE CALC ================= */
+/* GRADE CALC */
 
 function compute(list){
   if(!list.length) return null;
@@ -157,7 +152,7 @@ function grade(p){
   return "F";
 }
 
-/* ================= HIDDEN ADMIN ================= */
+/* HIDDEN ADMIN */
 
 var tapCount=0;
 var timer=null;
@@ -179,9 +174,6 @@ function unlockAdmin(){
 
   var classId = prompt("Class ID (1-6)?");
   if(!classId) return;
-
-  var name = prompt("Assignment name?");
-  if(!name) return;
 
   var earned = parseFloat(prompt("Points earned?"));
   var possible = parseFloat(prompt("Points possible?"));
