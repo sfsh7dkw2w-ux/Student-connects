@@ -40,6 +40,15 @@ body{
 .teacher{ color:#4f6d8c; margin-top:3px; }
 .grade{ margin-top:8px; font-weight:bold; }
 
+.assignment{
+  margin-top:6px;
+  padding:6px 8px;
+  background:#f5f7fa;
+  border-radius:6px;
+  display:flex;
+  justify-content:space-between;
+}
+
 .login{
   display:flex;
   justify-content:center;
@@ -55,9 +64,50 @@ body{
   color:white;
   cursor:pointer;
 }
-.login button:hover{ opacity:0.9; }
 
 .hidden{ display:none; }
+
+/* Modal */
+.modal{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.4);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.modal-content{
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  width:90%;
+  max-width:400px;
+}
+.modal-content input,
+.modal-content select{
+  width:100%;
+  padding:10px;
+  margin-top:10px;
+  border-radius:6px;
+  border:1px solid #ccc;
+}
+.modal-content button{
+  margin-top:12px;
+  padding:10px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+}
+.saveBtn{
+  background:#2d3e50;
+  color:white;
+}
+.closeBtn{
+  background:#ccc;
+}
 </style>
 </head>
 
@@ -68,18 +118,29 @@ body{
 
 <div class="container">
 
-  <div id="login" class="login">
-    <button id="loginBtn">Sign In</button>
+<div id="login" class="login">
+  <button id="loginBtn">Sign In</button>
+</div>
+
+<div id="dashboard" class="hidden"></div>
+
+</div>
+
+<!-- Admin Modal -->
+<div id="adminModal" class="modal hidden">
+  <div class="modal-content">
+    <h3>Add Assignment</h3>
+    <select id="classSelect"></select>
+    <input type="text" id="assignName" placeholder="Assignment Name">
+    <button class="saveBtn" id="saveAssign">Save</button>
+    <button class="closeBtn" id="closeModal">Close</button>
   </div>
-
-  <div id="dashboard" class="hidden"></div>
-
 </div>
 
 <script>
 (function(){
 
-var ADMIN_PASSWORD = "secureAdmin2026"; // change this
+var ADMIN_PASSWORD = "20126693";
 
 var classes = [
  {id:1,name:"Chemistry S2",teacher:"Bazzi-Hijazi, R"},
@@ -94,9 +155,11 @@ var login = document.getElementById("login");
 var loginBtn = document.getElementById("loginBtn");
 var dashboard = document.getElementById("dashboard");
 var header = document.getElementById("header");
+var modal = document.getElementById("adminModal");
+var classSelect = document.getElementById("classSelect");
+var assignName = document.getElementById("assignName");
 
 /* LOGIN */
-
 loginBtn.addEventListener("click", function(){
   login.classList.add("hidden");
   dashboard.classList.remove("hidden");
@@ -104,56 +167,48 @@ loginBtn.addEventListener("click", function(){
 });
 
 /* RENDER */
-
 function render(){
-  dashboard.innerHTML = "";
-
+  dashboard.innerHTML="";
   for(var i=0;i<classes.length;i++){
     var c = classes[i];
     var assignments = JSON.parse(localStorage.getItem("assign_"+c.id) || "[]");
 
-    var percent = compute(assignments);
-    var letter = grade(percent);
-
-    var card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML =
-      "<div class='title'>" + c.name + "</div>" +
-      "<div class='teacher'>" + c.teacher + "</div>" +
-      "<div class='grade'>Grade: " +
-      (letter ? letter : "--") +
-      " (" + (percent ? percent.toFixed(1)+"%" : "--") + ")</div>";
-
+    var card=document.createElement("div");
+    card.className="card";
+    card.innerHTML="<div class='title'>"+c.name+"</div>"+
+                   "<div class='teacher'>"+c.teacher+"</div>"+
+                   "<div id='assign_"+c.id+"'></div>";
     dashboard.appendChild(card);
+
+    var container=document.getElementById("assign_"+c.id);
+    for(var j=0;j<assignments.length;j++){
+      addAssignment(container,c.id,assignments[j],j);
+    }
   }
 }
 
-/* GRADE CALCULATION */
+/* ADD ASSIGNMENT DISPLAY */
+function addAssignment(container,classId,name,index){
+  var div=document.createElement("div");
+  div.className="assignment";
+  div.innerHTML="<span>"+name+"</span>"+
+                "<span style='cursor:pointer;color:red;' data-class='"+classId+"' data-index='"+index+"'>✕</span>";
+  container.appendChild(div);
+}
 
-function compute(list){
-  if(!list.length) return null;
-  var total=0, weight=0;
-  for(var i=0;i<list.length;i++){
-    total += (list[i].earned/list[i].possible)*list[i].weight;
-    weight += list[i].weight;
+/* DELETE */
+document.addEventListener("click",function(e){
+  if(e.target.getAttribute("data-class")){
+    var classId=e.target.getAttribute("data-class");
+    var index=e.target.getAttribute("data-index");
+    var arr=JSON.parse(localStorage.getItem("assign_"+classId)||"[]");
+    arr.splice(index,1);
+    localStorage.setItem("assign_"+classId,JSON.stringify(arr));
+    render();
   }
-  return (total/weight)*100;
-}
+});
 
-function grade(p){
-  if(p==null) return null;
-  if(p>=93) return "A";
-  if(p>=90) return "A-";
-  if(p>=87) return "B+";
-  if(p>=83) return "B";
-  if(p>=80) return "B-";
-  if(p>=70) return "C";
-  if(p>=60) return "D";
-  return "F";
-}
-
-/* HIDDEN ADMIN (5 taps only) */
-
+/* HIDDEN ADMIN */
 var tapCount=0;
 var timer=null;
 
@@ -161,33 +216,51 @@ header.addEventListener("click",function(){
   tapCount++;
   clearTimeout(timer);
   timer=setTimeout(function(){tapCount=0;},1000);
-
   if(tapCount===5){
     tapCount=0;
-    openAdmin();
+    unlockAdmin();
   }
 });
 
-function openAdmin(){
-  var pass = prompt("Admin password:");
-  if(pass !== ADMIN_PASSWORD) return;
+function unlockAdmin(){
+  var pass=prompt("Admin password:");
+  if(pass!==ADMIN_PASSWORD) return;
+  openModal();
+}
 
-  var classId = prompt("Class ID (1-6)?");
-  if(!classId) return;
+/* MODAL */
+function openModal(){
+  classSelect.innerHTML="";
+  for(var i=0;i<classes.length;i++){
+    var opt=document.createElement("option");
+    opt.value=classes[i].id;
+    opt.textContent=classes[i].name;
+    classSelect.appendChild(opt);
+  }
+  modal.classList.remove("hidden");
+}
 
-  var earned = parseFloat(prompt("Points earned?"));
-  var possible = parseFloat(prompt("Points possible?"));
-  var weight = parseFloat(prompt("Weight? (1 default)")) || 1;
+document.getElementById("closeModal").addEventListener("click",function(){
+  modal.classList.add("hidden");
+});
 
-  var arr = JSON.parse(localStorage.getItem("assign_"+classId) || "[]");
-  arr.push({earned:earned,possible:possible,weight:weight});
+document.getElementById("saveAssign").addEventListener("click",function(){
+  var classId=classSelect.value;
+  var name=assignName.value.trim();
+  if(!name) return;
+
+  var arr=JSON.parse(localStorage.getItem("assign_"+classId)||"[]");
+  arr.push(name);
   localStorage.setItem("assign_"+classId,JSON.stringify(arr));
 
+  assignName.value="";
+  modal.classList.add("hidden");
   render();
-}
+});
 
 })();
 </script>
 
 </body>
 </html>
+
