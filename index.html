@@ -47,7 +47,7 @@ body{
   height:80vh;
 }
 .login button{
-  padding:12px 20px;
+  padding:14px 24px;
   font-size:16px;
   border-radius:8px;
   border:none;
@@ -128,7 +128,7 @@ function render(){
   }
 }
 
-/* GRADE CALC */
+/* GRADE CALCULATION */
 
 function compute(list){
   if(!list.length) return null;
@@ -152,7 +152,7 @@ function grade(p){
   return "F";
 }
 
-/* HIDDEN ADMIN */
+/* HIDDEN ADMIN (5 taps only) */
 
 var tapCount=0;
 var timer=null;
@@ -164,11 +164,11 @@ header.addEventListener("click",function(){
 
   if(tapCount===5){
     tapCount=0;
-    unlockAdmin();
+    openAdmin();
   }
 });
 
-function unlockAdmin(){
+function openAdmin(){
   var pass = prompt("Admin password:");
   if(pass !== ADMIN_PASSWORD) return;
 
